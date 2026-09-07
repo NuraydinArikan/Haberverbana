@@ -24,7 +24,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       {/* Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <span className="px-3.5 py-1 rounded-full bg-red-600/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider">
-          Monetizasyon & Üyelik Planları
+          Avantajlı Üyelik Planları
         </span>
         <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight">
           İhtiyacınıza Uygun Fırsat Radarı

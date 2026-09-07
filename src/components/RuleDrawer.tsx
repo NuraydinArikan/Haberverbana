@@ -206,14 +206,14 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-serif text-base sm:text-lg font-bold text-white">
-                  Yeni Çapraz Platform Fırsat Radarı
+                  Yeni Fırsat Radarı Oluştur
                 </h2>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-                  AI Keşif + Manuel Özgürlük
+                  Akıllı Platform Taraması
                 </span>
               </div>
               <p className="text-xs text-white/50">
-                "Sen Arama, O Haber Versin" — İster yapay zeka tüm siteleri bulup tarasın, ister sadece seçtiğiniz mecraları izletin.
+                "Sen Arama, O Haber Versin" — Aradığınız ürünü veya bütçenizi belirleyin, radar sizin için tüm pazar yerlerini 7/24 izlesin.
               </p>
             </div>
           </div>

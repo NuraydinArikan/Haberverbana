@@ -161,7 +161,7 @@ export const DealCard: React.FC<DealCardProps> = ({
             <button
               onClick={() => onSendTelegram(deal)}
               className="p-2 text-white/60 hover:text-[#229ED9] hover:bg-[#229ED9]/10 rounded-xl transition-colors border border-transparent hover:border-[#229ED9]/20"
-              title="Telegram Bildirimini Test Et"
+              title="Telegram Bildirimi Gönder"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -171,9 +171,10 @@ export const DealCard: React.FC<DealCardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 py-2 bg-white hover:bg-white/90 text-black rounded-xl text-xs font-bold flex items-center gap-1.5 transition-transform active:scale-95 shadow-md"
+              title="Fırsat ilanını doğrudan kaynak sitede yeni sekmede aç"
             >
-              <span>Satıcıya Git</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Yeni Sekmede Aç</span>
+              <ExternalLink className="w-3.5 h-3.5 text-black" />
             </a>
           </div>
         </div>

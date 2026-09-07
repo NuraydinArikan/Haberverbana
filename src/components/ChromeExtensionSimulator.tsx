@@ -147,14 +147,14 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-serif text-xl sm:text-2xl font-bold text-white">
-                Chrome Eklentisi (Manifest V3) Simülatörü
+                Link ile Fırsat Analizi
               </h2>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold">
-                Eklenti v1.2
+                Akıllı Fiyat Ayrıştırıcı
               </span>
             </div>
             <p className="text-xs text-white/50">
-              Amazon, Trendyol, Hepsiburada veya Sahibinden'de gezinirken sayfadaki ilanı tek tıkla radara yakalayın.
+              Amazon, Trendyol, Hepsiburada veya Sahibinden'de gördüğünüz herhangi bir ilanı yapıştırın; yapay zeka piyasa dip fiyatını ve fırsat puanını anında çıkarsın.
             </p>
           </div>
         </div>
@@ -168,7 +168,7 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
                 type="url"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Herhangi bir ürün/ilan linki yapıştırın (Amazon, Trendyol, Sahibinden)..."
+                placeholder="Herhangi bir ürün veya ilan bağlantısı yapıştırın (Amazon, Trendyol, Sahibinden)..."
                 className="w-full pl-11 pr-4 py-3 bg-black/60 border border-white/15 rounded-2xl text-xs text-white placeholder-white/40 focus:outline-none focus:border-amber-400"
               />
             </div>
@@ -178,7 +178,7 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
               className="px-6 py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
             >
               <Zap className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-              <span>{isScanning ? 'Yapay Zeka İnceliyor...' : 'Linkten Yakala'}</span>
+              <span>{isScanning ? 'Yapay Zeka İnceliyor...' : 'Fırsatı Analiz Et'}</span>
             </button>
           </div>
         </div>
@@ -186,7 +186,7 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
         {/* Quick Sample Links */}
         <div className="pt-2 space-y-2">
           <span className="text-[11px] text-white/50 block">
-            Veya hazır örnek ilanlarla eklentiyi deneyin:
+            Hızlı denemek için popüler ilan örnekleri:
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {SAMPLE_LINKS.map((sample, idx) => (
@@ -215,14 +215,14 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
         </div>
       </div>
 
-      {/* Simulated Chrome Extension Popup Result */}
+      {/* Scanned Result */}
       {scanResult && (
         <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-amber-500/30 shadow-2xl space-y-4 animate-in slide-in-from-top-4 duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
               <span className="font-bold text-xs text-amber-400 uppercase tracking-wider">
-                Haberverbana Chrome Eklentisi Önizleme
+                Yapay Zeka Analiz Raporu
               </span>
             </div>
             <div className="px-3 py-1 bg-amber-500/20 text-amber-300 rounded-lg text-xs font-mono font-bold">
@@ -254,20 +254,33 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
             </div>
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
-            <button
-              onClick={() => setScanResult(null)}
-              className="px-4 py-2 text-xs text-white/50 hover:text-white"
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+            <a
+              href={urlInput || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/10"
+              title="İlanı kaynak sitede yeni sekmede aç"
             >
-              Kapat
-            </button>
-            <button
-              onClick={handleAddScannedToRadar}
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-red-950/40 active:scale-95 transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tek Tıkla Radarıma Ekle</span>
-            </button>
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span>Yeni Sekmede Aç</span>
+            </a>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setScanResult(null)}
+                className="px-4 py-2 text-xs text-white/50 hover:text-white"
+              >
+                Kapat
+              </button>
+              <button
+                onClick={handleAddScannedToRadar}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-red-950/40 active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tek Tıkla Radarıma Ekle</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

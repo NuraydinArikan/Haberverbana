@@ -81,6 +81,17 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <a
+              href={deal.productUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1.5 text-white/80 hover:text-white rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-xs flex items-center gap-1.5 border border-white/10"
+              title="İlanı satıcının sitesinde yeni sekmede aç"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline text-xs">Yeni Sekmede Aç</span>
+            </a>
+
             <button
               onClick={handleCopyLink}
               className="p-2 text-white/60 hover:text-white rounded-xl hover:bg-white/5 transition-colors text-xs flex items-center gap-1"
@@ -265,7 +276,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
               className="px-4 py-2.5 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Telegram Alarmı Test Et</span>
+              <span>Telegram'a İlet</span>
             </button>
 
             <a
@@ -274,7 +285,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
               rel="noopener noreferrer"
               className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-lg shadow-red-950/40 active:scale-95"
             >
-              <span>Satıcıya Git & Satın Al</span>
+              <span>Yeni Sekmede Aç & İncele</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>

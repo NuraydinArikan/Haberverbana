@@ -9,7 +9,8 @@ import {
   Sparkles, 
   ShieldCheck,
   Zap,
-  TrendingDown
+  TrendingDown,
+  ExternalLink
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -32,32 +33,43 @@ export const Navbar: React.FC<NavbarProps> = ({
   user,
   activeRulesCount
 }) => {
+  const handleOpenAppNewTab = () => {
+    window.open(window.location.href, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <header id="main-header" className="sticky top-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/10">
       {/* Top Banner: Status Bar */}
       <div className="bg-[#050505] border-b border-white/5 py-1.5 px-4 text-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="font-mono text-[11px] text-white/70">
-              7/24 FIRSAT RADARI AKTİF • Amazon, Hepsiburada, Trendyol, Sahibinden taranıyor
+            <span className="font-mono text-[11px] text-white/80">
+              7/24 Kesintisiz Fırsat Radarı Aktif • Amazon, Hepsiburada, Trendyol, Sahibinden
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4 text-[11px] text-white/50 font-mono">
-            <span className="flex items-center gap-1 text-emerald-400">
+          <div className="flex items-center gap-4 text-[11px] text-white/60 font-mono">
+            <button
+              onClick={handleOpenAppNewTab}
+              className="hover:text-white text-white/70 flex items-center gap-1 transition-colors group cursor-pointer"
+              title="Uygulamayı bağımsız sekmede aç"
+            >
+              <ExternalLink className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span className="underline underline-offset-2">Yeni Sekmede Aç</span>
+            </button>
+            <span className="hidden sm:inline text-white/30">•</span>
+            <span className="hidden sm:flex items-center gap-1 text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Anti-Spam 24s Koruması
+              Doğrulanmış İlanlar
             </span>
-            <span>•</span>
-            <span className="text-white/70">
-              Aktif Kural: <strong className="text-white font-bold">{activeRulesCount}</strong>
+            <span className="hidden sm:inline text-white/30">•</span>
+            <span className="hidden sm:inline text-white/70">
+              Takip Edilen Kural: <strong className="text-white font-bold">{activeRulesCount}</strong>
             </span>
-            <span>•</span>
-            <span className="text-red-400 font-medium">Gemini 2.5 Flash Analitik</span>
           </div>
         </div>
       </div>
@@ -75,8 +87,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white">
                   haberverbana<span className="text-red-500">.app</span>
                 </span>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-semibold">
-                  Radar v2.5
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Canlı
                 </span>
               </div>
               <p className="text-[11px] text-white/50 font-medium italic tracking-wide">
@@ -120,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Chrome className="w-3.5 h-3.5 text-amber-400" />
-              <span>Eklenti Simülatörü</span>
+              <span>Linkle Tara</span>
             </button>
 
             <button
@@ -137,12 +150,23 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Direct Open in New Tab button */}
+            <button
+              id="open-app-new-tab-btn"
+              onClick={handleOpenAppNewTab}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/10 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Uygulamayı bağımsız yeni sekmede tam ekran aç"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden lg:inline">Yeni Sekmede Aç</span>
+            </button>
+
             <button
               id="open-telegram-btn"
               onClick={onOpenTelegramModal}
               className="p-2 sm:px-3 sm:py-1.5 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
-              title="Telegram Canlı Bildirim Ayarları ve Test"
+              title="Telegram Canlı Bildirim Ayarları"
             >
               <Send className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Telegram Bildirimleri</span>
@@ -152,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="open-onboarding-btn"
               onClick={onOpenOnboarding}
               className="p-2 text-white/50 hover:text-white hover:bg-white/5 rounded-full transition-colors"
-              title="Karşılama Sihirbazı"
+              title="Nasıl Çalışır? Rehberi"
             >
               <HelpCircle className="w-4 h-4" />
             </button>

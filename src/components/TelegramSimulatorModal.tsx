@@ -207,7 +207,7 @@ export const TelegramSimulatorModal: React.FC<TelegramSimulatorModalProps> = ({
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>Neden Bildirim Gelmiyor? (Canlı Bağla)</span>
+            <span>Telegram Kurulumu & Bağlantı</span>
           </button>
 
           <button
@@ -219,21 +219,21 @@ export const TelegramSimulatorModal: React.FC<TelegramSimulatorModalProps> = ({
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span>Mesaj Önizlemesi</span>
+            <span>Örnek Mesaj Önizlemesi</span>
           </button>
         </div>
 
         {/* Tab 1: Connect Real Telegram */}
         {activeTab === 'connect' && (
           <div className="p-5 space-y-4 overflow-y-auto max-h-[62vh] text-xs leading-relaxed">
-            {/* Why notifications don't arrive explanation */}
-            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200/90 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-amber-300">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>Şu Anda Bildirim Gelmemesinin Sebebi:</span>
+            {/* Connection explanation */}
+            <div className="p-3.5 rounded-2xl bg-[#229ED9]/10 border border-[#229ED9]/30 text-white/90 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-[#229ED9]">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>Canlı Fırsat Bildirimlerinizi Telefonunuza Alın</span>
               </div>
-              <p>
-                Telegram botunun mesajları telefonunuza iletebilmesi için hesabınızın <strong>Telegram Chat ID</strong>'sini bilmesi gerekir. Aşağıdaki 2 adımı tamamladığınızda tüm bildirimler doğrudan cebinize gelecektir:
+              <p className="text-white/70">
+                Fırsat Radarı'nın yakaladığı kritik indirimleri anında telefonunuza iletebilmesi için <strong>Telegram Chat ID</strong>'nizi bağlamanız yeterlidir:
               </p>
             </div>
 

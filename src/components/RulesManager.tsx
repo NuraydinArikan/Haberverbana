@@ -47,11 +47,11 @@ export const RulesManager: React.FC<RulesManagerProps> = ({
               <span>Fırsat Radarı Kurallarım</span>
             </h2>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-              Meta-Arama & Çoklu Platform
+              7/24 Çapraz Tarama
             </span>
           </div>
           <p className="text-xs text-white/50 mt-1">
-            "Sen Arama, O Haber Versin": Link vermeden sadece aradığınız ürün ve bütçeyi yazın; bot Amazon, Trendyol, Hepsiburada ve Sahibinden'i çapraz tarasın.
+            "Sen Arama, O Haber Versin": Aradığınız ürünü ve bütçenizi belirleyin; radar Amazon, Trendyol, Hepsiburada ve Sahibinden'i çapraz tarasın.
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export const RulesManager: React.FC<RulesManagerProps> = ({
           className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-950/40 active:scale-95 whitespace-nowrap self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Yeni Kural Tanımla (Link Gerektirmez)</span>
+          <span>+ Yeni Radar Kuralı Ekle</span>
         </button>
       </div>
 

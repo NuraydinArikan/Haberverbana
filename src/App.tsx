@@ -137,7 +137,7 @@ export default function App() {
       url: buildSearchUrl(platform, q, rule.maxPrice)
     }));
 
-    showToast(`🤖 Web Kazıma Görevi Başlatıldı: ${targetPlatforms.join(', ')} taranıyor...`);
+    showToast(`🔍 Fırsat Taraması Başlatıldı: ${targetPlatforms.join(', ')} taranıyor...`);
 
     // 2. Simulate the async web-scraping lifecycle (DOM parsing, price extraction, filtering)
     setTimeout(() => {
@@ -178,10 +178,10 @@ export default function App() {
         discountRate: discountRate,
         opportunityScore: opportunityScore,
         badge: 'Kaçırılmayacak Fırsat',
-        whyForYou: `Web kazıma botu ${primaryTask.platform} arama motorunu taradı. "${q}" araması için ${rule.maxPrice.toLocaleString('tr-TR')} TL bütçe tavanının %${discountRate} altında (₺${scrapedPrice.toLocaleString('tr-TR')}) yeni fırsat yakalandı.${rule.aiInstructions ? ` Gemini Kriteri: "${rule.aiInstructions}" doğrulandı.` : ''}`,
-        summary: `${primaryTask.platform} üzerinde "${q}" için ₺${scrapedPrice.toLocaleString('tr-TR')} seviyesinde fırsat web kazıyıcı tarafından anlık yakalandı.`,
+        whyForYou: `${primaryTask.platform} pazar yerinde "${q}" araması için ${rule.maxPrice.toLocaleString('tr-TR')} TL bütçe tavanının %${discountRate} altında (₺${scrapedPrice.toLocaleString('tr-TR')}) yeni fırsat yakalandı.${rule.aiInstructions ? ` Gemini Kriteri: "${rule.aiInstructions}" doğrulandı.` : ''}`,
+        summary: `${primaryTask.platform} üzerinde "${q}" için ₺${scrapedPrice.toLocaleString('tr-TR')} seviyesinde fırsat anlık yakalandı.`,
         pros: [
-          `${primaryTask.platform} arama motorundan canlı kazındı`,
+          `${primaryTask.platform} üzerinden canlı tespit edildi`,
           `Belirlediğiniz bütçe sınırının ₺${(marketAvgPrice - scrapedPrice).toLocaleString('tr-TR')} altında`,
           ...(rule.positiveKeywords.length > 0 ? [`"${rule.positiveKeywords.join(', ')}" kriterleriyle uyumlu`] : [])
         ],
@@ -194,13 +194,13 @@ export default function App() {
         marketComparison: `Piyasa liste ortalaması ₺${marketAvgPrice.toLocaleString('tr-TR')} seviyesindedir.`,
         productUrl: primaryTask.url,
         imageUrl: categoryImages[rule.category] || categoryImages['Elektronik & Bilgisayar'],
-        foundAt: 'Az önce (Web Kazıyıcı)',
+        foundAt: 'Az önce',
         sellerRating: '4.8 / 5.0 (Resmi Satıcı)',
         priceHistory: [
           { date: '15 gün önce', price: marketAvgPrice },
-          { date: 'Bugün (Kazıma)', price: scrapedPrice }
+          { date: 'Bugün (Tespit)', price: scrapedPrice }
         ],
-        tags: [q, primaryTask.platform, 'Web Kazıyıcı', 'Canlı Fırsat'],
+        tags: [q, primaryTask.platform, 'Fırsat Radarı', 'Canlı İndirim'],
         isAffiliate: true,
         matchedRuleIds: [rule.id]
       };
@@ -213,14 +213,14 @@ export default function App() {
 
       setSelectedDealForTelegram(scrapedDeal);
 
-      showToast(`🎉 Kazıma Tamamlandı: ${primaryTask.platform} üzerinde ₺${scrapedPrice.toLocaleString('tr-TR')} değerinde yeni fırsat tespit edildi!`);
+      showToast(`🎉 Fırsat Yakalandı: ${primaryTask.platform} üzerinde ₺${scrapedPrice.toLocaleString('tr-TR')} değerinde yeni indirim tespit edildi!`);
 
       // Dispatch live Telegram alert if connected
       const config = getStoredTelegramConfig();
       if (config.botToken && config.chatId) {
         sendRealTelegramAlert(scrapedDeal, config).then(res => {
           if (res.success) {
-            showToast('🔔 Yeni kazınan fırsat Telegram botunuza iletildi!');
+            showToast('🔔 Yeni yakalanan fırsat Telegram botunuza iletildi!');
           }
         });
       }
@@ -461,8 +461,9 @@ export default function App() {
                     <span className="px-2.5 py-1 bg-red-600/20 text-red-400 border border-red-500/30 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
                       Yapay Zeka Destekli Fırsat Radarı
                     </span>
-                    <span className="text-xs text-white/50 font-mono">
-                      Gemini 2.5 Flash Analitiği
+                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      Canlı Fiyat Doğrulama
                     </span>
                   </div>
 
@@ -475,13 +476,13 @@ export default function App() {
                 </div>
 
                 {/* Quick Action Buttons */}
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5 flex-wrap">
                   <button
                     onClick={() => setIsRuleDrawerOpen(true)}
                     className="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-lg shadow-red-950/50 flex items-center gap-2 transition-all active:scale-95"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
-                    <span>+ Yeni Kural Tanımla</span>
+                    <span>+ Yeni Radar Kuralı</span>
                   </button>
 
                   <button
@@ -489,7 +490,7 @@ export default function App() {
                     className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
                   >
                     <Chrome className="w-4 h-4 text-amber-400" />
-                    <span>Linkten Yakala</span>
+                    <span>Linkle Fırsat Analizi</span>
                   </button>
 
                   <button
@@ -500,7 +501,16 @@ export default function App() {
                     className="px-4 py-3 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
                   >
                     <Send className="w-4 h-4" />
-                    <span>Telegram Alarm Testi</span>
+                    <span>Telegram Bildirimleri</span>
+                  </button>
+
+                  <button
+                    onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
+                    className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
+                    title="Uygulamayı bağımsız sekmede tam ekran aç"
+                  >
+                    <ExternalLink className="w-4 h-4 text-amber-400" />
+                    <span>Yeni Sekmede Aç</span>
                   </button>
                 </div>
               </div>
