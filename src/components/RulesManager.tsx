@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   SlidersHorizontal, 
   Plus, 
@@ -16,7 +16,9 @@ import {
   Bot,
   Zap,
   Sparkles,
-  Sliders
+  Sliders,
+  Share2,
+  Check
 } from 'lucide-react';
 import { RadarRule } from '../types';
 import { buildPlatformSearchUrl, getPlatformBadgeStyle } from '../utils/searchUrlBuilder';
@@ -36,6 +38,37 @@ export const RulesManager: React.FC<RulesManagerProps> = ({
   onOpenCreateRule,
   onScanRule
 }) => {
+  const [copiedRuleId, setCopiedRuleId] = useState<string | null>(null);
+
+  const handleShareRule = (rule: RadarRule) => {
+    try {
+      const url = new URL(window.location.href);
+      const q = rule.searchQuery || rule.name;
+      url.searchParams.set('q', q);
+      url.searchParams.set('cat', rule.category);
+      url.searchParams.set('score', rule.minScore.toString());
+      url.searchParams.set('rule', rule.name);
+
+      const shareUrl = url.toString();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = shareUrl;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedRuleId(rule.id);
+      setTimeout(() => setCopiedRuleId(null), 2500);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
@@ -233,6 +266,22 @@ export const RulesManager: React.FC<RulesManagerProps> = ({
                         }`}
                       >
                         <span>{rule.isActive ? 'Aktif' : 'Durduruldu'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleShareRule(rule)}
+                        className={`p-1.5 rounded-xl transition-colors ${
+                          copiedRuleId === rule.id
+                            ? 'text-emerald-400 bg-emerald-500/10'
+                            : 'text-white/40 hover:text-amber-400 hover:bg-white/5'
+                        }`}
+                        title={copiedRuleId === rule.id ? 'Bağlantı kopyalandı!' : 'Kural Bağlantısını Kopyala & Paylaş'}
+                      >
+                        {copiedRuleId === rule.id ? (
+                          <Check className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <Share2 className="w-4 h-4" />
+                        )}
                       </button>
 
                       <button

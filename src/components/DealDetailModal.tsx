@@ -12,7 +12,9 @@ import {
   BarChart2, 
   FileText,
   Copy,
-  FolderSync
+  FolderSync,
+  Heart,
+  Bookmark
 } from 'lucide-react';
 import { DealItem } from '../types';
 
@@ -20,12 +22,20 @@ interface DealDetailModalProps {
   deal: DealItem | null;
   onClose: () => void;
   onSendTelegram: (deal: DealItem) => void;
+  isFavorite?: boolean;
+  isSavedForLater?: boolean;
+  onToggleFavorite?: (dealId: string) => void;
+  onToggleSavedForLater?: (dealId: string) => void;
 }
 
 export const DealDetailModal: React.FC<DealDetailModalProps> = ({
   deal,
   onClose,
-  onSendTelegram
+  onSendTelegram,
+  isFavorite,
+  isSavedForLater,
+  onToggleFavorite,
+  onToggleSavedForLater
 }) => {
   const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
   const [aiReport, setAiReport] = useState<any>(null);
@@ -81,6 +91,37 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Quick Action Button Group */}
+            <div className="flex items-center gap-1 p-0.5 rounded-xl bg-white/5 border border-white/10">
+              <button
+                type="button"
+                onClick={() => onToggleFavorite?.(deal.id)}
+                className={`p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isFavorite
+                    ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50'
+                    : 'text-white/70 hover:text-rose-400 hover:bg-white/10'
+                }`}
+                title={isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <span className="hidden sm:inline text-xs">{isFavorite ? 'Favorilerde' : 'Favorile'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onToggleSavedForLater?.(deal.id)}
+                className={`p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isSavedForLater
+                    ? 'bg-amber-400/30 text-amber-300 border border-amber-400/50'
+                    : 'text-white/70 hover:text-amber-400 hover:bg-white/10'
+                }`}
+                title={isSavedForLater ? 'Daha Sonra İncele Listesinden Çıkar' : 'Daha Sonra İncele'}
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${isSavedForLater ? 'fill-amber-400 text-amber-400' : ''}`} />
+                <span className="hidden sm:inline text-xs">{isSavedForLater ? 'Listede' : 'Daha Sonra'}</span>
+              </button>
+            </div>
+
             <a
               href={deal.productUrl}
               target="_blank"

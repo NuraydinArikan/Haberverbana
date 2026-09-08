@@ -47,6 +47,8 @@ export interface DealItem {
   tags: string[];
   isAffiliate: boolean;
   matchedRuleIds?: string[];
+  isFavorite?: boolean;
+  isSavedForLater?: boolean;
 }
 
 export interface RadarRule {
@@ -97,6 +99,25 @@ export interface NotificationLog {
   channel: 'Telegram' | 'E-posta';
   sentAt: string;
   status: 'İletildi' | 'Okundu';
+}
+
+export type NotificationType = 'deal' | 'telegram' | 'scan' | 'rule' | 'system';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  createdAt: number;
+  read: boolean;
+  dealId?: string;
+  deal?: DealItem;
+  platform?: Platform;
+  productUrl?: string;
+  price?: number;
+  discountRate?: number;
+  score?: number;
 }
 
 export interface DriveItem {

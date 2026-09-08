@@ -14,6 +14,106 @@
   }
 }
 
+/* High-Contrast Dark Mode Styles (Optimized for Low-Light Deal Tracking) */
+.high-contrast {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.high-contrast header,
+.high-contrast footer,
+.high-contrast nav,
+.high-contrast .bg-\[\#0A0A0A\],
+.high-contrast .bg-\[\#050505\],
+.high-contrast .bg-\[\#0F0F0F\],
+.high-contrast .bg-\[\#121212\],
+.high-contrast .bg-\[\#141414\],
+.high-contrast .bg-\[\#161616\],
+.high-contrast .bg-\[\#191919\] {
+  background-color: #000000 !important;
+}
+
+/* Elevated Border Contrast */
+.high-contrast .border-white\/5,
+.high-contrast .border-white\/10,
+.high-contrast .border-white\/15,
+.high-contrast .border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Elevated Text Legibility (No Faint Gray in Low Light) */
+.high-contrast .text-white\/30,
+.high-contrast .text-white\/40,
+.high-contrast .text-white\/50,
+.high-contrast .text-white\/60 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.high-contrast .text-white\/70,
+.high-contrast .text-white\/80,
+.high-contrast .text-white\/90 {
+  color: #FFFFFF !important;
+}
+
+/* High-Contrast Key Accents */
+.high-contrast .text-emerald-400 {
+  color: #00FF88 !important;
+  font-weight: 700;
+}
+
+.high-contrast .text-amber-400 {
+  color: #FFD000 !important;
+  font-weight: 700;
+}
+
+.high-contrast .text-red-400 {
+  color: #FF334B !important;
+  font-weight: 700;
+}
+
+.high-contrast .text-red-500 {
+  color: #FF1F3D !important;
+  font-weight: 700;
+}
+
+.high-contrast .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.high-contrast .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  background-color: #000000 !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #FFFFFF !important;
+}
+
+/* Sharp Card & Deal Module Framing for Critical Low-Light Readability */
+.high-contrast [id^="deal-card-"],
+.high-contrast [id^="rule-card-"],
+.high-contrast .deal-card-container {
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+}
+
+.high-contrast [id^="deal-card-"]:hover,
+.high-contrast [id^="rule-card-"]:hover {
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Enhanced Contrast Badges & Scores */
+.high-contrast .bg-black\/80,
+.high-contrast .bg-black\/60 {
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  color: #FFFFFF !important;
+}
+
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }

@@ -5,6 +5,7 @@ import {
   Radar, 
   Filter, 
   SlidersHorizontal, 
+  PlusCircle, 
   CheckCircle2, 
   TrendingDown, 
   ShieldCheck, 
@@ -16,15 +17,24 @@ import {
   Zap,
   Tag,
   BookmarkPlus,
-  BookmarkCheck
+  BookmarkCheck,
+  Share2,
+  Check,
+  Bell,
+  BellRing,
+  Heart,
+  Bookmark,
+  X
 } from 'lucide-react';
 import { 
   DealCategory, 
   DealItem, 
   RadarRule, 
-  UserProfile 
+  UserProfile,
+  AppNotification
 } from './types';
 import { INITIAL_DEALS, INITIAL_RULES } from './data/mockDeals';
+import { INITIAL_NOTIFICATIONS } from './data/mockNotifications';
 import { Navbar } from './components/Navbar';
 import { DealCard } from './components/DealCard';
 import { DealDetailModal } from './components/DealDetailModal';
@@ -34,6 +44,7 @@ import { ChromeExtensionSimulator } from './components/ChromeExtensionSimulator'
 import { TelegramSimulatorModal } from './components/TelegramSimulatorModal';
 import { PricingModal } from './components/PricingModal';
 import { RulesManager } from './components/RulesManager';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { getStoredTelegramConfig, sendRealTelegramAlert } from './services/telegramService';
 import { buildSearchUrl, getAiRecommendedPlatforms } from './utils/searchUrlBuilder';
 
@@ -53,6 +64,24 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [minScoreFilter, setMinScoreFilter] = useState<number>(0); // 0 = all, 7 = hot, 8 = dip
   const [selectedPlatform, setSelectedPlatform] = useState<string>('Tümü');
+  const [quickListFilter, setQuickListFilter] = useState<'all' | 'favorites' | 'savedLater'>('all');
+
+  // Favorites & Watch Later State (Persisted across sessions)
+  const [favoriteDealIds, setFavoriteDealIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('haberverbana_favorites');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return ['deal-1']; // Seed top deal as initial sample favorite
+  });
+
+  const [savedLaterDealIds, setSavedLaterDealIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('haberverbana_saved_later');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return ['deal-2']; // Seed initial watch-later sample item
+  });
 
   // Core Data State (Simulating SQLite haberverbana_state.db)
   const [deals, setDeals] = useState<DealItem[]>(() => {
@@ -87,7 +116,90 @@ export default function App() {
   const [ruleDrawerInitialValues, setRuleDrawerInitialValues] = useState<Partial<Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>> | null>(null);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  // Notification Center History State
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    const saved = localStorage.getItem('haberverbana_notifications');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return INITIAL_NOTIFICATIONS;
+  });
+  const [activeBannerNotification, setActiveBannerNotification] = useState<AppNotification | null>(null);
+
+  // Midnight vs High-Contrast Dark Mode State (Optimized for low-light critical deal tracking)
+  const [contrastMode, setContrastMode] = useState<'midnight' | 'high-contrast'>(() => {
+    const saved = localStorage.getItem('haberverbana_contrast_mode');
+    return (saved === 'high-contrast' || saved === 'midnight') ? saved : 'midnight';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_contrast_mode', contrastMode);
+    if (contrastMode === 'high-contrast') {
+      document.documentElement.classList.add('high-contrast');
+      document.body.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+      document.body.classList.remove('high-contrast');
+    }
+  }, [contrastMode]);
+
+  const handleToggleContrast = () => {
+    setContrastMode(prev => {
+      const next = prev === 'midnight' ? 'high-contrast' : 'midnight';
+      showToast(
+        next === 'high-contrast'
+          ? '☀️ Yüksek Kontrast (OLED) modu aktif: Düşük ışıkta keskin kontrast ve maksimum okunabilirlik.'
+          : '🌙 Midnight modu aktif: Koyu derin siyah tonlara dönüldü.',
+        'system'
+      );
+      return next;
+    });
+  };
+
+  // Sync notifications to local state
+  useEffect(() => {
+    localStorage.setItem('haberverbana_notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  // Sync from URL search params on mount (when opening a shared radar link)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const cat = params.get('cat');
+      const score = params.get('score');
+      const platform = params.get('platform');
+      const ruleName = params.get('rule');
+
+      let hasParam = false;
+      if (q) {
+        setSearchQuery(q);
+        hasParam = true;
+      }
+      if (cat && (CATEGORIES as string[]).includes(cat)) {
+        setSelectedCategory(cat as DealCategory);
+        hasParam = true;
+      }
+      if (score && !isNaN(Number(score))) {
+        setMinScoreFilter(Number(score));
+        hasParam = true;
+      }
+      if (platform) {
+        setSelectedPlatform(platform);
+        hasParam = true;
+      }
+
+      if (hasParam) {
+        showToast(`🔗 Paylaşılan radar filtresi yüklendi${ruleName ? `: "${ruleName}"` : ''}!`);
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, []);
 
   // Sync to local state
   useEffect(() => {
@@ -102,9 +214,92 @@ export default function App() {
     localStorage.setItem('haberverbana_user', JSON.stringify(user));
   }, [user]);
 
-  const showToast = (msg: string) => {
+  // Dispatch rich notification to center & transient banner
+  const addNotification = (notif: Omit<AppNotification, 'id' | 'createdAt' | 'read' | 'timestamp'> & { timestamp?: string }) => {
+    const newNotif: AppNotification = {
+      ...notif,
+      id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: Date.now(),
+      timestamp: notif.timestamp || 'Az önce',
+      read: false
+    };
+
+    setNotifications(prev => [newNotif, ...prev]);
+    setActiveBannerNotification(newNotif);
+
+    // Auto-dismiss banner after 6 seconds, preserving it in Notification Center
+    setTimeout(() => {
+      setActiveBannerNotification(prev => prev?.id === newNotif.id ? null : prev);
+    }, 6000);
+  };
+
+  const showToast = (msg: string, type: AppNotification['type'] = 'system', deal?: DealItem) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+
+    // Automatically record into the Notification Center history
+    addNotification({
+      type,
+      title: deal ? `🔥 Fırsat Yakalandı: ${deal.platform}` : msg.split(':')[0] || 'Radar Bildirimi',
+      message: msg,
+      deal,
+      dealId: deal?.id,
+      platform: deal?.platform,
+      price: deal?.currentPrice,
+      discountRate: deal?.discountRate,
+      score: deal?.opportunityScore,
+      productUrl: deal?.productUrl
+    });
+  };
+
+  const handleToggleFavorite = (dealId: string) => {
+    const targetDeal = deals.find(d => d.id === dealId);
+    setFavoriteDealIds(prev => {
+      const exists = prev.includes(dealId);
+      const next = exists ? prev.filter(id => id !== dealId) : [...prev, dealId];
+      localStorage.setItem('haberverbana_favorites', JSON.stringify(next));
+      showToast(
+        exists ? 'Fırsat favorilerden çıkarıldı.' : `❤️ "${targetDeal?.title?.slice(0, 35) || 'Fırsat'}..." favorilerinize eklendi!`,
+        'system',
+        targetDeal
+      );
+      return next;
+    });
+  };
+
+  const handleToggleSavedForLater = (dealId: string) => {
+    const targetDeal = deals.find(d => d.id === dealId);
+    setSavedLaterDealIds(prev => {
+      const exists = prev.includes(dealId);
+      const next = exists ? prev.filter(id => id !== dealId) : [...prev, dealId];
+      localStorage.setItem('haberverbana_saved_later', JSON.stringify(next));
+      showToast(
+        exists ? 'Fırsat "Daha Sonra İncele" listesinden çıkarıldı.' : `🔖 "${targetDeal?.title?.slice(0, 35) || 'Fırsat'}..." daha sonra incelemek üzere kaydedildi!`,
+        'system',
+        targetDeal
+      );
+      return next;
+    });
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
+    setActiveBannerNotification(null);
+  };
+
+  const handleDeleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    if (activeBannerNotification?.id === id) {
+      setActiveBannerNotification(null);
+    }
   };
 
   // Rule Handlers
@@ -213,14 +408,14 @@ export default function App() {
 
       setSelectedDealForTelegram(scrapedDeal);
 
-      showToast(`🎉 Fırsat Yakalandı: ${primaryTask.platform} üzerinde ₺${scrapedPrice.toLocaleString('tr-TR')} değerinde yeni indirim tespit edildi!`);
+      showToast(`🎉 Fırsat Yakalandı: ${primaryTask.platform} üzerinde ₺${scrapedPrice.toLocaleString('tr-TR')} değerinde yeni indirim tespit edildi!`, 'deal', scrapedDeal);
 
       // Dispatch live Telegram alert if connected
       const config = getStoredTelegramConfig();
       if (config.botToken && config.chatId) {
         sendRealTelegramAlert(scrapedDeal, config).then(res => {
           if (res.success) {
-            showToast('🔔 Yeni yakalanan fırsat Telegram botunuza iletildi!');
+            showToast('🔔 Yeni yakalanan fırsat Telegram botunuza iletildi!', 'telegram', scrapedDeal);
           }
         });
       }
@@ -305,11 +500,75 @@ export default function App() {
     }
   };
 
+  // Share current rule/view as a shareable link
+  const handleShareCurrentView = () => {
+    try {
+      const url = new URL(window.location.href);
+      const trimmedQuery = searchQuery.trim();
+
+      if (trimmedQuery) {
+        url.searchParams.set('q', trimmedQuery);
+      } else {
+        url.searchParams.delete('q');
+      }
+
+      if (selectedCategory && selectedCategory !== 'Tümü') {
+        url.searchParams.set('cat', selectedCategory);
+      } else {
+        url.searchParams.delete('cat');
+      }
+
+      if (minScoreFilter > 0) {
+        url.searchParams.set('score', minScoreFilter.toString());
+      } else {
+        url.searchParams.delete('score');
+      }
+
+      if (selectedPlatform && selectedPlatform !== 'Tümü') {
+        url.searchParams.set('platform', selectedPlatform);
+      } else {
+        url.searchParams.delete('platform');
+      }
+
+      const ruleLabel = trimmedQuery 
+        ? `${trimmedQuery} Radarı` 
+        : (selectedCategory !== 'Tümü' ? `${selectedCategory} Fırsat Radarı` : 'Fırsat Radarı');
+      url.searchParams.set('rule', ruleLabel);
+
+      const shareUrl = url.toString();
+
+      const copyAction = async () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = shareUrl;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+      };
+
+      copyAction().then(() => {
+        setCopiedShare(true);
+        showToast(`🔗 "${ruleLabel}" kural paylaşım bağlantısı panoya kopyalandı!`);
+        setTimeout(() => setCopiedShare(false), 2500);
+      }).catch(() => {
+        showToast('Bağlantı panoya kopyalanamadı.');
+      });
+    } catch {
+      showToast('Paylaşım bağlantısı oluşturulurken bir hata oluştu.');
+    }
+  };
+
   // Adding deal from Chrome Extension Simulator
   const handleAddDetectedDeal = (newDeal: DealItem) => {
     setDeals([newDeal, ...deals]);
     setActiveTab('feed');
-    showToast(`"${newDeal.title}" radara başarıyla eklendi!`);
+    showToast(`"${newDeal.title}" radara başarıyla eklendi!`, 'deal', newDeal);
   };
 
   // Telegram alert trigger
@@ -401,6 +660,14 @@ export default function App() {
 
   // Filtering Logic
   const filteredDeals = deals.filter((deal) => {
+    // Quick List Filter: Favoriler veya Daha Sonra İncele
+    if (quickListFilter === 'favorites' && !favoriteDealIds.includes(deal.id)) {
+      return false;
+    }
+    if (quickListFilter === 'savedLater' && !savedLaterDealIds.includes(deal.id)) {
+      return false;
+    }
+
     // Category match
     if (selectedCategory !== 'Tümü' && deal.category !== selectedCategory) {
       return false;
@@ -425,14 +692,84 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F5] flex flex-col font-sans selection:bg-red-600 selection:text-white">
-      {/* Toast Notification */}
-      {toastMessage && (
+    <div className={`min-h-screen bg-[#0A0A0A] text-[#F5F5F5] flex flex-col font-sans selection:bg-red-600 selection:text-white transition-colors duration-200 ${contrastMode === 'high-contrast' ? 'high-contrast' : ''}`}>
+      {/* Interactive Notification Banner (Geçici bildirim yerine tıklandığında detay açan ve merkeze yönlendiren akıllı bildirim kartı) */}
+      {activeBannerNotification ? (
+        <div 
+          id="active-notification-banner"
+          onClick={() => {
+            if (activeBannerNotification.deal) {
+              setSelectedDealForDetail(activeBannerNotification.deal);
+            } else {
+              setIsNotificationCenterOpen(true);
+            }
+            setActiveBannerNotification(null);
+          }}
+          className="fixed top-20 sm:top-24 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-full bg-[#121212]/95 backdrop-blur-xl text-white p-4 rounded-3xl shadow-2xl border border-red-500/40 animate-in slide-in-from-top-4 duration-300 cursor-pointer group hover:border-red-500/70 transition-all"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0 mt-0.5">
+              <BellRing className="w-4 h-4 animate-bounce" />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-600/20 text-red-400 font-bold border border-red-500/30">
+                  {activeBannerNotification.type === 'deal' ? '🔥 Yeni Fırsat Yakalandı' : '🔔 Radar Bildirimi'}
+                </span>
+                <span className="text-[10px] text-white/40 font-mono">
+                  {activeBannerNotification.timestamp}
+                </span>
+              </div>
+
+              <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-red-400 transition-colors line-clamp-1">
+                {activeBannerNotification.title}
+              </h4>
+
+              <p className="text-xs text-white/70 mt-1 line-clamp-2 leading-relaxed">
+                {activeBannerNotification.message}
+              </p>
+
+              <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsNotificationCenterOpen(true);
+                    setActiveBannerNotification(null);
+                  }}
+                  className="text-[11px] text-white/60 hover:text-white font-medium flex items-center gap-1.5 underline underline-offset-2"
+                >
+                  <Bell className="w-3 h-3 text-amber-400" />
+                  <span>Bildirim Merkezinde Gör</span>
+                </button>
+
+                {activeBannerNotification.deal && (
+                  <span className="text-[11px] font-bold text-red-400 flex items-center gap-1 group-hover:underline">
+                    <span>Fırsatı İncele</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveBannerNotification(null);
+              }}
+              className="p-1 text-white/40 hover:text-white rounded-full hover:bg-white/10 transition-colors shrink-0"
+              title="Kapat"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ) : toastMessage ? (
         <div className="fixed top-24 right-6 z-50 bg-[#0F0F0F] text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-medium flex items-center gap-2.5 border border-white/20 animate-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
-      )}
+      ) : null}
 
       {/* Main Navbar */}
       <Navbar
@@ -444,6 +781,10 @@ export default function App() {
           setIsTelegramModalOpen(true);
         }}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
+        unreadNotificationsCount={notifications.filter(n => !n.read).length}
+        contrastMode={contrastMode}
+        onToggleContrast={handleToggleContrast}
         user={user}
         activeRulesCount={rules.filter(r => r.isActive).length}
       />
@@ -452,67 +793,45 @@ export default function App() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* VIEW 1: FIRSAT RADARI (FEED) */}
         {activeTab === 'feed' && (
-          <div className="space-y-6">
-            {/* Mission Hero Banner */}
-            <div className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-red-950/40 via-[#0F0F0F] to-black border border-white/15 overflow-hidden">
-              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="space-y-2 max-w-2xl">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 bg-red-600/20 text-red-400 border border-red-500/30 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
-                      Yapay Zeka Destekli Fırsat Radarı
-                    </span>
-                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Canlı Fiyat Doğrulama
-                    </span>
-                  </div>
-
-                  <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
-                    "Sen Arama, O Haber Versin"
+          <div className="space-y-5">
+            {/* Live Operational Dashboard Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-red-500" />
+                    <span>Canlı Fırsat Akışı</span>
                   </h1>
-                  <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-                    Amazon, Hepsiburada, Trendyol ve Sahibinden 7/24 taranıyor. Belirlediğiniz bütçe ve donanım kriterlerine uyan gerçek fırsatlar, <strong>"Neden senin için fırsat?"</strong> analiziyle anında ekranınızda.
-                  </p>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Canlı Taranıyor
+                  </span>
+                  <span className="text-xs text-white/50 font-mono">
+                    ({filteredDeals.length} Fırsat Tespit Edildi)
+                  </span>
                 </div>
+                <p className="text-xs text-white/60 mt-1">
+                  Kriterlerinizle eşleşen Amazon, Hepsiburada, Trendyol ve Sahibinden canlı fiyat anomalileri ve dip fırsatlar.
+                </p>
+              </div>
 
-                {/* Quick Action Buttons */}
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <button
-                    onClick={() => setIsRuleDrawerOpen(true)}
-                    className="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-lg shadow-red-950/50 flex items-center gap-2 transition-all active:scale-95"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    <span>+ Yeni Radar Kuralı</span>
-                  </button>
+              <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                <button
+                  id="feed-add-rule-btn"
+                  onClick={() => setIsRuleDrawerOpen(true)}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-md shadow-red-950/40 flex items-center gap-2 transition-all active:scale-95"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>+ Yeni Radar Kuralı</span>
+                </button>
 
-                  <button
-                    onClick={() => setActiveTab('extension')}
-                    className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
-                  >
-                    <Chrome className="w-4 h-4 text-amber-400" />
-                    <span>Linkle Fırsat Analizi</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedDealForTelegram(deals[0] || null);
-                      setIsTelegramModalOpen(true);
-                    }}
-                    className="px-4 py-3 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Telegram Bildirimleri</span>
-                  </button>
-
-                  <button
-                    onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
-                    className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors"
-                    title="Uygulamayı bağımsız sekmede tam ekran aç"
-                  >
-                    <ExternalLink className="w-4 h-4 text-amber-400" />
-                    <span>Yeni Sekmede Aç</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setActiveTab('extension')}
+                  className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <Chrome className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Linkle Tara</span>
+                </button>
               </div>
             </div>
 
@@ -539,19 +858,68 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Score Filter Pills & Save Current View Button */}
+                {/* Score & Quick List Filter Pills */}
                 <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    <button
+                      id="filter-all-deals-pill"
+                      onClick={() => {
+                        setQuickListFilter('all');
+                        setMinScoreFilter(0);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs transition-all whitespace-nowrap cursor-pointer ${
+                        quickListFilter === 'all' && minScoreFilter === 0
+                          ? 'bg-red-600 text-white font-bold shadow-md'
+                          : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      Tüm Fırsatlar
+                    </button>
+
+                    <button
+                      id="filter-favorites-pill"
+                      onClick={() => {
+                        setQuickListFilter(quickListFilter === 'favorites' ? 'all' : 'favorites');
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                        quickListFilter === 'favorites'
+                          ? 'bg-rose-600 text-white font-bold shadow-md shadow-rose-950/50'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-rose-400'
+                      }`}
+                      title="Sadece favorilere eklediğiniz fırsatları göster"
+                    >
+                      <Heart className={`w-3.5 h-3.5 ${quickListFilter === 'favorites' ? 'fill-white' : 'text-rose-400'}`} />
+                      <span>Favorilerim ({favoriteDealIds.length})</span>
+                    </button>
+
+                    <button
+                      id="filter-saved-later-pill"
+                      onClick={() => {
+                        setQuickListFilter(quickListFilter === 'savedLater' ? 'all' : 'savedLater');
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                        quickListFilter === 'savedLater'
+                          ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-950/50'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-amber-400'
+                      }`}
+                      title="Sadece 'daha sonra incele' listenizdeki fırsatları göster"
+                    >
+                      <Bookmark className={`w-3.5 h-3.5 ${quickListFilter === 'savedLater' ? 'fill-white' : 'text-amber-400'}`} />
+                      <span>Daha Sonra ({savedLaterDealIds.length})</span>
+                    </button>
+
                     {[
-                      { label: 'Tüm Fırsatlar', min: 0 },
-                      { label: '🔥 Sıcak Fırsat (7.0+)', min: 7.0 },
+                      { label: '🔥 Sıcak (7.0+)', min: 7.0 },
                       { label: '⚡ Dip Fiyat (8.0+)', min: 8.0 }
                     ].map((filter) => (
                       <button
                         key={filter.min}
-                        onClick={() => setMinScoreFilter(filter.min)}
-                        className={`px-3 py-1.5 rounded-full text-xs transition-all whitespace-nowrap ${
-                          minScoreFilter === filter.min
+                        onClick={() => {
+                          setQuickListFilter('all');
+                          setMinScoreFilter(filter.min);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs transition-all whitespace-nowrap cursor-pointer ${
+                          quickListFilter === 'all' && minScoreFilter === filter.min
                             ? 'bg-red-600 text-white font-bold shadow-md'
                             : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
                         }`}
@@ -570,6 +938,30 @@ export default function App() {
                   >
                     <BookmarkPlus className="w-3.5 h-3.5 text-red-400" />
                     <span>Görünümü Radara Kaydet</span>
+                  </button>
+
+                  {/* Share Rule / View Link Button */}
+                  <button
+                    id="share-current-view-btn"
+                    onClick={handleShareCurrentView}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 whitespace-nowrap shrink-0 border ${
+                      copiedShare
+                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                        : 'bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border-white/15'
+                    }`}
+                    title="Oluşturulan radar kuralı ve filtre görünümünü bir bağlantı olarak kopyalayıp başkalarıyla paylaşın"
+                  >
+                    {copiedShare ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-300 font-bold">Kopyalandı</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Paylaş</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -677,6 +1069,11 @@ export default function App() {
                   <DealCard
                     key={deal.id}
                     deal={deal}
+                    isFavorite={favoriteDealIds.includes(deal.id)}
+                    isSavedForLater={savedLaterDealIds.includes(deal.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                    onToggleSavedForLater={handleToggleSavedForLater}
+                    onShowToast={showToast}
                     onSelectDeal={(d) => setSelectedDealForDetail(d)}
                     onSendTelegram={(d) => handleTriggerTelegram(d)}
                   />
@@ -721,6 +1118,10 @@ export default function App() {
         deal={selectedDealForDetail}
         onClose={() => setSelectedDealForDetail(null)}
         onSendTelegram={(d) => handleTriggerTelegram(d)}
+        isFavorite={selectedDealForDetail ? favoriteDealIds.includes(selectedDealForDetail.id) : false}
+        isSavedForLater={selectedDealForDetail ? savedLaterDealIds.includes(selectedDealForDetail.id) : false}
+        onToggleFavorite={handleToggleFavorite}
+        onToggleSavedForLater={handleToggleSavedForLater}
       />
 
       {/* Rule Drawer (Alttan Açılan Kural Formu) */}
@@ -755,6 +1156,21 @@ export default function App() {
         deal={selectedDealForTelegram}
       />
 
+      {/* Bildirim Merkezi (Notification Center) Paneli */}
+      <NotificationCenterModal
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+        notifications={notifications}
+        onMarkAsRead={handleMarkAsRead}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        onClearAll={handleClearAllNotifications}
+        onDeleteNotification={handleDeleteNotification}
+        onSelectDeal={(deal) => {
+          setSelectedDealForDetail(deal);
+          setIsNotificationCenterOpen(false);
+        }}
+      />
+
       {/* Footer */}
       <footer className="bg-[#050505] border-t border-white/10 py-6 text-xs text-white/50 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -767,12 +1183,12 @@ export default function App() {
             <span className="italic">"Sen Arama, O Haber Versin"</span>
           </div>
 
-          <div className="flex items-center gap-4 text-white/40">
-            <span>Playwright Stealth Scraper</span>
+          <div className="flex items-center gap-4 text-white/40 font-mono text-[11px]">
+            <span>© 2026 Haberverbana</span>
             <span>•</span>
-            <span>Gemini 2.5 Flash</span>
+            <span>Canlı Radar v2.4</span>
             <span>•</span>
-            <span>Telegram Bot Dispatcher</span>
+            <span className="text-emerald-400/80">Sistem Operasyonel</span>
           </div>
         </div>
       </footer>
