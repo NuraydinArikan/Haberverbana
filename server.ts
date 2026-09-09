@@ -320,6 +320,337 @@ ${whyForYou || 'Bütçe limitlerinize tam uydu ve son 90 günün en dip seviyesi
   res.json({ success: true, telegramPayload });
 });
 
+// ==========================================
+// HABERVERBANA PYTHON PLAYWRIGHT BRIDGE API
+// ==========================================
+
+interface IngestedDeal {
+  id: string;
+  title: string;
+  category: string;
+  platform: string;
+  currentPrice: number;
+  originalPrice: number;
+  marketAvgPrice: number;
+  discountRate: number;
+  opportunityScore: number;
+  badge: string;
+  whyForYou: string;
+  summary: string;
+  pros: string[];
+  cons: string[];
+  riskFactors: string[];
+  marketComparison: string;
+  productUrl: string;
+  imageUrl: string;
+  foundAt: string;
+  sellerRating: string;
+  location?: string;
+  priceHistory: { date: string; price: number }[];
+  tags: string[];
+  isAffiliate: boolean;
+  matchedRuleIds: string[];
+  source?: string;
+}
+
+let storedDeals: IngestedDeal[] = [
+  {
+    id: 'deal-tesla-model-y',
+    title: '2024 Tesla Model Y RWD (18.000 km, Hatasız, Boyasız, Tam PPF Kaplama, Kış Lastikli)',
+    category: 'Otomobil & Vasıta',
+    platform: 'Sahibinden',
+    currentPrice: 2280000,
+    originalPrice: 2450000,
+    marketAvgPrice: 2420000,
+    discountRate: 6.9,
+    opportunityScore: 9.3,
+    badge: 'Kaçırılmayacak Fırsat',
+    whyForYou: 'Piyasa ortalamasından ₺140.000 daha hesaplı ve hatasız ekspertizli.',
+    summary: 'Boyasız, tramersiz, tam PPF korumalı ve kış lastikleri dahil; sahibinden acil nakit satılık Tesla Model Y RWD.',
+    pros: [
+      'Hatasız, boyasız, değişensiz (Ekspertiz garantili)',
+      'Komple Stek DynoShield PPF kaplama',
+      'Orijinal kış lastik seti dahil',
+      '2024 model ve sadece 18.000 km'
+    ],
+    cons: ['Nakit alım şartı bulunmaktadır'],
+    riskFactors: ['Batarya sağlığı %99.2 (Tesla servis raporuyla doğrulanmış)'],
+    marketComparison: '2024 Model Y RWD emsalleri 2.390.000 - 2.460.000 ₺ bandında satılmaktadır.',
+    productUrl: 'https://www.sahibinden.com/tesla-model-y',
+    imageUrl: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80',
+    foundAt: '8 dakika önce',
+    sellerRating: 'Bireysel (İlk Sahibi)',
+    location: 'İstanbul / Ataşehir',
+    priceHistory: [
+      { date: '10 Şub', price: 2450000 },
+      { date: '20 Şub', price: 2390000 },
+      { date: '01 Mar', price: 2340000 },
+      { date: '05 Mar', price: 2280000 }
+    ],
+    tags: ['Tesla Model Y', 'PPF Kaplama', 'Hatasız', '2024'],
+    isAffiliate: false,
+    matchedRuleIds: ['rule-2']
+  },
+  {
+    id: 'deal-macbook-air-m3',
+    title: 'Apple MacBook Air 13.6" M3 (16GB RAM / 512GB SSD) Gece Yarısı',
+    category: 'Elektronik & Bilgisayar',
+    platform: 'Amazon',
+    currentPrice: 47499,
+    originalPrice: 53999,
+    marketAvgPrice: 52000,
+    discountRate: 12.0,
+    opportunityScore: 9.1,
+    badge: 'Kaçırılmayacak Fırsat',
+    whyForYou: 'Satıcı resmi Amazon.com.tr ve piyasa ortalamasının %12 altında.',
+    summary: 'Resmi Amazon satıcılı 16GB RAM / 512GB SSD M3 MacBook Air modelinde piyasanın dip fiyatı.',
+    pros: [
+      'Satıcı resmi Amazon Türkiye (Güvenilir garanti ve kolay iade)',
+      '16GB birleşik bellek ile uzun ömürlü performans'
+    ],
+    cons: ['Stok adetleri anlık tükenebilir'],
+    riskFactors: ['Platform iade garantisi altında sıfır kutulu ürün'],
+    marketComparison: 'Yetkili satıcılarda ₺52.000 bandında satılmaktadır.',
+    productUrl: 'https://www.amazon.com.tr/dp/B0CX23G1M2',
+    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+    foundAt: '15 dakika önce',
+    sellerRating: 'Resmi Satıcı (Amazon.com.tr)',
+    location: 'Amazon Lojistik',
+    priceHistory: [
+      { date: '15 Şub', price: 53999 },
+      { date: '25 Şub', price: 51999 },
+      { date: '04 Mar', price: 47499 }
+    ],
+    tags: ['MacBook Air', 'M3', '16GB RAM', 'Resmi Satıcı'],
+    isAffiliate: false,
+    matchedRuleIds: ['rule-1']
+  }
+];
+
+let lastScraperIngestTime: string | null = null;
+let totalScraperIngests = 0;
+
+// Helper: build platform search URLs for scraper
+function buildTargetUrl(platform: string, query: string, maxPrice?: number): string {
+  const q = encodeURIComponent(query.trim());
+  switch (platform) {
+    case 'Amazon':
+      return `https://www.amazon.com.tr/s?k=${q}${maxPrice ? `&rh=p_36%3A0-${maxPrice * 100}` : ''}`;
+    case 'Hepsiburada':
+      return `https://www.hepsiburada.com/ara?q=${q}${maxPrice ? `&fiyat=0-${maxPrice}` : ''}`;
+    case 'Trendyol':
+      return `https://www.trendyol.com/sr?q=${q}${maxPrice ? `&prc=0-${maxPrice}` : ''}`;
+    case 'Sahibinden':
+      return `https://www.sahibinden.com/kelime-ile-arama?query_text=${q}${maxPrice ? `&price_max=${maxPrice}` : ''}`;
+    case 'Arabam':
+      return `https://www.arabam.com/ikinci-el?searchText=${q}${maxPrice ? `&maxPrice=${maxPrice}` : ''}`;
+    case 'N11':
+      return `https://www.n11.com/arama?q=${q}${maxPrice ? `&ps=${maxPrice}` : ''}`;
+    default:
+      return `https://www.google.com/search?q=${q}`;
+  }
+}
+
+// GET /api/deals: Returns all stored deals (UI + Scraper ingested)
+app.get('/api/deals', (req, res) => {
+  res.json({
+    success: true,
+    count: storedDeals.length,
+    lastScraperIngestTime,
+    totalScraperIngests,
+    deals: storedDeals
+  });
+});
+
+// POST /api/deals/ingest: Live ingestion endpoint for Python Playwright Bot
+app.post('/api/deals/ingest', async (req, res) => {
+  try {
+    const {
+      title,
+      currentPrice,
+      originalPrice,
+      marketAvgPrice,
+      platform,
+      category,
+      productUrl,
+      imageUrl,
+      sellerRating,
+      location,
+      whyForYou,
+      summary,
+      pros,
+      cons,
+      riskFactors,
+      tags,
+      matchedRuleIds,
+      source
+    } = req.body;
+
+    if (!title || !currentPrice) {
+      return res.status(400).json({ error: 'Ürün başlığı (title) ve güncel fiyat (currentPrice) zorunludur.' });
+    }
+
+    const cPrice = Number(currentPrice);
+    const mPrice = Number(marketAvgPrice) || Number(originalPrice) || Math.round(cPrice * 1.22);
+    const oPrice = Number(originalPrice) || mPrice;
+    const discountRate = mPrice > cPrice ? +(((mPrice - cPrice) / mPrice) * 100).toFixed(1) : 10;
+
+    // AI opportunity score calculation if not supplied
+    let score = req.body.opportunityScore;
+    let computedWhy = whyForYou;
+    let computedSummary = summary;
+    let computedPros = Array.isArray(pros) ? pros : [];
+
+    if (!score) {
+      const ai = getAIClient();
+      if (ai) {
+        try {
+          const aiPrompt = `Python scraper yeni bir fırsat yakaladı:
+Ürün: ${title}
+Fiyat: ${cPrice} TL (Piyasa: ${mPrice} TL, İndirim: %${discountRate})
+Platform: ${platform || 'E-ticaret'}
+Lütfen 1.0 ile 10.0 arasında fırsat puanı ve 1 cümlelik neden fırsat olduğunu JSON olarak ver:
+{"score": 8.8, "why": "Piyasa ortalamasının altında ve yetkili satıcı garantili.", "summary": "Kaçırılmayacak indirim seviyesinde."}`;
+
+          const resp = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: aiPrompt,
+            config: { responseMimeType: 'application/json' }
+          });
+          const parsed = JSON.parse(resp.text?.trim() || '{}');
+          score = parsed.score || 8.2;
+          if (!computedWhy) computedWhy = parsed.why;
+          if (!computedSummary) computedSummary = parsed.summary;
+        } catch {
+          score = Math.min(9.7, Math.max(7.4, +(7.2 + discountRate / 12).toFixed(1)));
+        }
+      } else {
+        score = Math.min(9.7, Math.max(7.4, +(7.2 + discountRate / 12).toFixed(1)));
+      }
+    }
+
+    const newDeal: IngestedDeal = {
+      id: `ingest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title,
+      category: category || 'Elektronik & Bilgisayar',
+      platform: platform || 'Amazon',
+      currentPrice: cPrice,
+      originalPrice: oPrice,
+      marketAvgPrice: mPrice,
+      discountRate,
+      opportunityScore: Number(score) || 8.0,
+      badge: Number(score) >= 8.5 ? 'Kaçırılmayacak Fırsat' : 'Sıcak Fırsat',
+      whyForYou: computedWhy || `Piyasa ortalaması olan ₺${mPrice.toLocaleString('tr-TR')} seviyesinin %${discountRate} altında yakalandı.`,
+      summary: computedSummary || `${title} için tespit edilen bu fiyat seviyesi güçlü bir arbitraj ve tasarruf avantajı barındırıyor.`,
+      pros: computedPros.length > 0 ? computedPros : [
+        `Piyasa ortalamasından ₺${(mPrice - cPrice).toLocaleString('tr-TR')} daha hesaplı`,
+        `${platform || 'Platform'} güvencesiyle kontrol edildi`
+      ],
+      cons: Array.isArray(cons) && cons.length > 0 ? cons : ['Fırsat stoklarla sınırlı olabilir'],
+      riskFactors: Array.isArray(riskFactors) && riskFactors.length > 0 ? riskFactors : ['Platform iade güvencesi mevcut'],
+      marketComparison: `Piyasa ortalaması ₺${mPrice.toLocaleString('tr-TR')} bandındadır.`,
+      productUrl: productUrl || 'https://haberverbana.app',
+      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
+      foundAt: 'Az önce',
+      sellerRating: sellerRating || `${platform || 'Online'} Satıcı`,
+      location: location || 'Türkiye Geneli',
+      priceHistory: [
+        { date: '10 gün önce', price: mPrice },
+        { date: 'Şimdi', price: cPrice }
+      ],
+      tags: Array.isArray(tags) ? tags : [platform || 'İndirim', 'Canlı Scraper'],
+      isAffiliate: false,
+      matchedRuleIds: Array.isArray(matchedRuleIds) ? matchedRuleIds : [],
+      source: source || 'python_playwright_bot'
+    };
+
+    // Prepend to stored deals
+    storedDeals.unshift(newDeal);
+    lastScraperIngestTime = new Date().toISOString();
+    totalScraperIngests++;
+
+    console.log(`[INGEST SUCCESS] Playwright Bot fırsatı aktardı: "${newDeal.title}" (₺${newDeal.currentPrice}) - Skor: ${newDeal.opportunityScore}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Fırsat başarıyla Haberverbana radarına aktarıldı ve yayınlandı!',
+      deal: newDeal,
+      stats: {
+        totalDeals: storedDeals.length,
+        totalScraperIngests,
+        lastScraperIngestTime
+      }
+    });
+  } catch (error: any) {
+    console.error('Deal ingest error:', error);
+    res.status(500).json({ error: 'Fırsat aktarılırken sunucu hatası oluştu.', details: error?.message });
+  }
+});
+
+// GET /api/scraper/tasks: Returns active radar targets and generated crawl URLs for Python crawler
+app.get('/api/scraper/tasks', (req, res) => {
+  const activeRules = storedRules.filter(r => r.isActive);
+  const tasks = activeRules.map(rule => {
+    const platforms = rule.category === 'Otomobil & Vasıta'
+      ? ['Sahibinden', 'Arabam']
+      : ['Amazon', 'Hepsiburada', 'Trendyol', 'Sahibinden'];
+
+    const targetUrls = platforms.map(platform => ({
+      platform,
+      searchQuery: rule.name,
+      crawlUrl: buildTargetUrl(platform, rule.name, rule.maxPrice)
+    }));
+
+    return {
+      ruleId: rule.id,
+      name: rule.name,
+      category: rule.category,
+      minPrice: rule.minPrice,
+      maxPrice: rule.maxPrice,
+      positiveKeywords: rule.positiveKeywords,
+      negativeKeywords: rule.negativeKeywords,
+      minScore: rule.minScore,
+      targetUrls
+    };
+  });
+
+  res.json({
+    success: true,
+    activeRulesCount: activeRules.length,
+    ingestEndpoint: '/api/deals/ingest',
+    domain: 'haberverbana.app',
+    tasks
+  });
+});
+
+// GET /api/scraper/status: Status of the ingestion bridge
+app.get('/api/scraper/status', (req, res) => {
+  res.json({
+    bridgeStatus: 'Active & Listening',
+    ingestUrl: 'http://localhost:3000/api/deals/ingest',
+    productionIngestUrl: 'https://haberverbana.app/api/deals/ingest',
+    totalScraperIngests,
+    lastScraperIngestTime,
+    storedDealsCount: storedDeals.length,
+    activeRulesCount: storedRules.filter(r => r.isActive).length
+  });
+});
+
+// GET /api/domain/status: Custom domain status & DNS instructions for haberverbana.app
+app.get('/api/domain/status', (req, res) => {
+  res.json({
+    domain: 'haberverbana.app',
+    status: 'Ready for DNS Mapping',
+    environment: 'Google Cloud Run / AI Studio',
+    instructions: {
+      step1: 'Domain sağlayıcınızın (Namecheap, GoDaddy, Google Domains, vb.) DNS Yönetim paneline girin.',
+      step2: 'A Kaydı ekleyin: Host = @ , Değer = Cloud Run Custom Domain IP (örn. 216.239.32.21, 216.239.34.21, 216.239.36.21, 216.239.38.21)',
+      step3: 'CNAME Kaydı ekleyin: Host = www , Değer = ghs.googlehosted.com.',
+      step4: 'SSL / TLS sertifikası Google tarafından otomatik olarak ücretsiz üretilir ve 15-30 dakika içinde aktifleşir.'
+    }
+  });
+});
+
 
 // Vite middleware for dev / static for prod
 async function startServer() {

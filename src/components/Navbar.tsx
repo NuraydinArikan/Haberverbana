@@ -11,7 +11,9 @@ import {
   TrendingDown,
   ExternalLink,
   Bell,
-  Contrast
+  Contrast,
+  Terminal,
+  Globe
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -22,6 +24,7 @@ interface NavbarProps {
   onOpenTelegramModal: () => void;
   onOpenOnboarding?: () => void;
   onOpenNotificationCenter: () => void;
+  onOpenIntegrationModal?: () => void;
   unreadNotificationsCount?: number;
   contrastMode: 'midnight' | 'high-contrast';
   onToggleContrast: () => void;
@@ -36,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenTelegramModal,
   onOpenOnboarding,
   onOpenNotificationCenter,
+  onOpenIntegrationModal,
   unreadNotificationsCount = 0,
   contrastMode,
   onToggleContrast,
@@ -228,6 +232,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               )}
             </button>
+
+            {/* Integration Modal: Python Scraper & Domain */}
+            {onOpenIntegrationModal && (
+              <button
+                id="open-integration-modal-btn"
+                onClick={onOpenIntegrationModal}
+                className="p-2 sm:px-3 sm:py-1.5 bg-gradient-to-r from-red-950/40 via-red-900/20 to-black hover:bg-white/10 text-white/90 hover:text-white border border-red-500/40 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer group"
+                title="Python Playwright Scraper & haberverbana.app Alan Adı Yönetimi"
+              >
+                <Terminal className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden md:inline">Python & Domain</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              </button>
+            )}
 
             {/* Direct Open in New Tab button */}
             <button

@@ -1,6 +1,6 @@
 {
   "name": "Haberverbana",
-  "description": "Sen Arama, O Haber Versin — E-ticaret ve ilan platformlarında 7/24 piyasayı tarayıp kriterlere uyan gerçek fırsatları tespit eden Yapay Zeka Destekli Akıllı Takip ve Fırsat Radarı.",
+  "description": "haberverbana.app — Sen Arama, O Haber Versin: E-ticaret ve ilan platformlarında 7/24 piyasayı tarayıp kriterlere uyan gerçek fırsatları tespit eden Yapay Zeka Destekli Akıllı Takip ve Fırsat Radarı.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -45,6 +45,7 @@ import { TelegramSimulatorModal } from './components/TelegramSimulatorModal';
 import { PricingModal } from './components/PricingModal';
 import { RulesManager } from './components/RulesManager';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { DomainAndScraperModal } from './components/DomainAndScraperModal';
 import { getStoredTelegramConfig, sendRealTelegramAlert } from './services/telegramService';
 import { buildSearchUrl, getAiRecommendedPlatforms } from './utils/searchUrlBuilder';
 
@@ -117,8 +118,40 @@ export default function App() {
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
+
+  // Auto-sync with backend / Python Playwright Ingestion API
+  useEffect(() => {
+    const syncBackendDeals = async () => {
+      try {
+        const res = await fetch('/api/deals');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.deals) && data.deals.length > 0) {
+            setDeals(prev => {
+              const existingIds = new Set(prev.map(d => d.id));
+              const freshDeals = data.deals.filter((d: DealItem) => !existingIds.has(d.id));
+              if (freshDeals.length > 0) {
+                showToast(`⚡ Python Scraper ${freshDeals.length} yeni fırsatı radara aktardı!`, 'deal', freshDeals[0]);
+                const combined = [...freshDeals, ...prev];
+                localStorage.setItem('haberverbana_deals', JSON.stringify(combined));
+                return combined;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {
+        // Local preview fallback
+      }
+    };
+
+    syncBackendDeals();
+    const interval = setInterval(syncBackendDeals, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Notification Center History State
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
@@ -782,6 +815,7 @@ export default function App() {
         }}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
         onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
+        onOpenIntegrationModal={() => setIsIntegrationModalOpen(true)}
         unreadNotificationsCount={notifications.filter(n => !n.read).length}
         contrastMode={contrastMode}
         onToggleContrast={handleToggleContrast}
@@ -1171,20 +1205,42 @@ export default function App() {
         }}
       />
 
+      {/* Domain & Python Playwright Scraper Integration Modal */}
+      <DomainAndScraperModal
+        isOpen={isIntegrationModalOpen}
+        onClose={() => setIsIntegrationModalOpen(false)}
+        onNewDealIngested={(newDeal) => {
+          setDeals(prev => [newDeal, ...prev]);
+          showToast('⚡ Python Botu yeni bir canlı fırsat aktardı!', 'deal', newDeal);
+        }}
+        onShowToast={(msg) => showToast(msg, 'system')}
+      />
+
       {/* Footer */}
       <footer className="bg-[#050505] border-t border-white/10 py-6 text-xs text-white/50 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-red-600 flex items-center justify-center text-white text-xs font-bold">
+          <div 
+            onClick={() => setIsIntegrationModalOpen(true)}
+            className="flex items-center gap-2 cursor-pointer group"
+            title="haberverbana.app Alan Adı ve Python Scraper Bağlantı Panelini Aç"
+          >
+            <div className="w-6 h-6 rounded-lg bg-red-600 flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform">
               ⚡
             </div>
-            <span className="font-serif font-bold text-white">haberverbana.app</span>
+            <span className="font-serif font-bold text-white group-hover:text-red-400 transition-colors">
+              haberverbana.app
+            </span>
             <span className="text-white/20">—</span>
             <span className="italic">"Sen Arama, O Haber Versin"</span>
           </div>
 
           <div className="flex items-center gap-4 text-white/40 font-mono text-[11px]">
-            <span>© 2026 Haberverbana</span>
+            <button
+              onClick={() => setIsIntegrationModalOpen(true)}
+              className="text-amber-400/90 hover:text-amber-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+            >
+              <span>Python & Domain Merkezi</span>
+            </button>
             <span>•</span>
             <span>Canlı Radar v2.4</span>
             <span>•</span>
