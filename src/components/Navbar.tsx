@@ -5,15 +5,10 @@ import {
   Send, 
   Chrome, 
   SlidersHorizontal, 
-  Sparkles, 
-  ShieldCheck,
-  Zap,
-  TrendingDown,
-  ExternalLink,
-  Bell,
-  Contrast,
-  Terminal,
-  Globe
+  Zap, 
+  Bell, 
+  Contrast, 
+  Sliders
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -24,7 +19,8 @@ interface NavbarProps {
   onOpenTelegramModal: () => void;
   onOpenOnboarding?: () => void;
   onOpenNotificationCenter: () => void;
-  onOpenIntegrationModal?: () => void;
+  onOpenPlatformSettings?: () => void;
+  selectedPlatforms?: string[];
   unreadNotificationsCount?: number;
   contrastMode: 'midnight' | 'high-contrast';
   onToggleContrast: () => void;
@@ -37,78 +33,90 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenRuleDrawer,
   onOpenTelegramModal,
-  onOpenOnboarding,
   onOpenNotificationCenter,
-  onOpenIntegrationModal,
+  onOpenPlatformSettings,
+  selectedPlatforms = [],
   unreadNotificationsCount = 0,
   contrastMode,
   onToggleContrast,
-  user,
   activeRulesCount
 }) => {
-  const handleOpenAppNewTab = () => {
-    window.open(window.location.href, '_blank', 'noopener,noreferrer');
+  // Format the platform status text dynamically
+  const getPlatformDisplayText = () => {
+    if (!selectedPlatforms || selectedPlatforms.length === 0 || (selectedPlatforms.length === 1 && selectedPlatforms[0] === 'all')) {
+      return 'Tüm İlgili Platformlar (Kategoriye Göre 65+ Mecra)';
+    }
+    if (selectedPlatforms.length <= 3) {
+      return selectedPlatforms.join(' • ');
+    }
+    return `${selectedPlatforms.slice(0, 3).join(' • ')} (+${selectedPlatforms.length - 3} site)`;
   };
+
+  const isCustomPlatforms = selectedPlatforms && selectedPlatforms.length > 0 && selectedPlatforms[0] !== 'all';
 
   return (
     <header id="main-header" className="sticky top-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/10">
-      {/* Top Banner: Status Bar */}
+      {/* Top Banner: Minimal Clean Status Bar */}
       <div className="bg-[#050505] border-b border-white/5 py-1.5 px-4 text-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-2 w-2">
+          
+          {/* Left: Dynamic System Platform Status */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="font-mono text-[11px] text-white/80">
-              Sistem: Canlı Radar Aktif • Amazon • Hepsiburada • Trendyol • Sahibinden
-            </span>
+            <div className="flex items-center gap-1.5 truncate font-mono text-[11px] text-white/80">
+              <span>Sistem: Canlı Radar Aktif •</span>
+              <span className={isCustomPlatforms ? "text-amber-400 font-bold" : "text-emerald-400 font-medium"}>
+                {getPlatformDisplayText()}
+              </span>
+              {onOpenPlatformSettings && (
+                <button
+                  onClick={onOpenPlatformSettings}
+                  className="text-[10px] text-red-400 hover:text-red-300 underline underline-offset-2 ml-1 cursor-pointer font-bold"
+                  title="Platform ve site tercihlerini ayarla"
+                >
+                  [Ayarlar]
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] text-white/60 font-mono">
-            {/* Contrast Mode quick status switch */}
+          {/* Right: Quick Settings & Counters */}
+          <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-white/60 font-mono shrink-0">
+            {/* Contrast Mode */}
             <button
               onClick={onToggleContrast}
               className="hover:text-white text-white/80 flex items-center gap-1.5 transition-colors cursor-pointer group"
               title="Midnight ve Yüksek Kontrast dark mode arasında geçiş yapın"
             >
               <Contrast className={`w-3 h-3 ${contrastMode === 'high-contrast' ? 'text-amber-400' : 'text-white/60'} group-hover:rotate-180 transition-transform duration-300`} />
-              <span className="underline underline-offset-2">
+              <span className="hidden sm:inline underline underline-offset-2">
                 Mod: <strong className={contrastMode === 'high-contrast' ? 'text-amber-400' : 'text-white'}>{contrastMode === 'high-contrast' ? 'Yüksek Kontrast' : 'Midnight'}</strong>
               </span>
             </button>
-            <span className="hidden sm:inline text-white/30">•</span>
+            <span className="text-white/20">•</span>
 
+            {/* Bildirim Merkezi */}
             <button
               onClick={onOpenNotificationCenter}
               className="hover:text-white text-white/80 flex items-center gap-1.5 transition-colors cursor-pointer group"
               title="Bildirim Merkezini Aç"
             >
               <Bell className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
-              <span className="underline underline-offset-2">Bildirim Merkezi</span>
+              <span className="underline underline-offset-2">Bildirimler</span>
               {unreadNotificationsCount > 0 && (
                 <span className="px-1.5 py-0.2 bg-red-600 text-white text-[9px] font-bold rounded-full">
                   {unreadNotificationsCount}
                 </span>
               )}
             </button>
-            <span className="hidden sm:inline text-white/30">•</span>
-            <button
-              onClick={handleOpenAppNewTab}
-              className="hover:text-white text-white/70 flex items-center gap-1 transition-colors group cursor-pointer"
-              title="Uygulamayı bağımsız sekmede aç"
-            >
-              <ExternalLink className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
-              <span className="underline underline-offset-2">Yeni Sekmede Aç</span>
-            </button>
-            <span className="hidden sm:inline text-white/30">•</span>
-            <span className="hidden sm:flex items-center gap-1 text-emerald-400">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Doğrulanmış İlanlar
-            </span>
-            <span className="hidden sm:inline text-white/30">•</span>
-            <span className="hidden sm:inline text-white/70">
-              Takip Edilen Kural: <strong className="text-white font-bold">{activeRulesCount}</strong>
+            <span className="text-white/20">•</span>
+
+            {/* Takip Edilen Kural Sayısı */}
+            <span className="text-white/70">
+              Kural: <strong className="text-white font-bold">{activeRulesCount}</strong>
             </span>
           </div>
         </div>
@@ -117,10 +125,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
-          {/* Logo & Slogan */}
+          
+          {/* Logo with Smooth Continuous Rotating Radar Icon */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('feed')}>
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center text-white shadow-lg shadow-red-950/40 border border-red-500/30">
-              <Radar className="w-5 h-5 animate-spin-slow" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center text-white shadow-lg shadow-red-950/40 border border-red-500/30 shrink-0">
+              <Radar className="w-5 h-5 animate-radar-spin text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -138,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-1 bg-white/5 p-1 rounded-full border border-white/10 text-xs font-medium">
             <button
               onClick={() => setActiveTab('feed')}
@@ -185,99 +194,47 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>Pro & Arbitraj</span>
+              <span>Planlar</span>
             </button>
           </nav>
 
-          {/* Right Action Controls */}
+          {/* Action Buttons (Clean & Focused) */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Midnight / High-Contrast Mode Toggle */}
-            <button
-              id="theme-contrast-toggle-btn"
-              onClick={onToggleContrast}
-              className={`p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm border cursor-pointer ${
-                contrastMode === 'high-contrast'
-                  ? 'bg-amber-400/20 border-amber-400 text-amber-300 ring-1 ring-amber-400/50 shadow-amber-950/40'
-                  : 'bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border-white/10'
-              }`}
-              title={
-                contrastMode === 'high-contrast'
-                  ? 'Şu an: Yüksek Kontrast (OLED). Standart Midnight moduna dönmek için tıklayın.'
-                  : 'Düşük ışıkta kritik fırsat takibi için Yüksek Kontrast (High-Contrast) moduna geçin.'
-              }
-            >
-              <Contrast className={`w-3.5 h-3.5 ${contrastMode === 'high-contrast' ? 'text-amber-400 animate-spin-slow' : 'text-white/60'}`} />
-              <span className="hidden sm:inline">
-                {contrastMode === 'high-contrast' ? 'Yüksek Kontrast' : 'Midnight'}
-              </span>
-            </button>
-
-            {/* Notification Center Button */}
-            <button
-              id="open-notification-center-btn"
-              onClick={onOpenNotificationCenter}
-              className="relative p-2 sm:px-3 sm:py-1.5 bg-white/5 hover:bg-white/10 text-white/85 hover:text-white border border-white/10 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-              title={`Bildirim Merkezi ${unreadNotificationsCount > 0 ? `(${unreadNotificationsCount} okunmamış)` : ''}`}
-            >
-              <div className="relative">
-                <Bell className="w-4 h-4 text-amber-400" />
-                {unreadNotificationsCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-red-600 border border-black animate-pulse"></span>
-                )}
-              </div>
-              <span className="hidden sm:inline">Bildirimler</span>
-              {unreadNotificationsCount > 0 && (
-                <span className="px-1.5 py-0.2 bg-red-600 text-white text-[10px] font-bold rounded-full">
-                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                </span>
-              )}
-            </button>
-
-            {/* Integration Modal: Python Scraper & Domain */}
-            {onOpenIntegrationModal && (
+            {/* Platform Ayarları Butonu */}
+            {onOpenPlatformSettings && (
               <button
-                id="open-integration-modal-btn"
-                onClick={onOpenIntegrationModal}
-                className="p-2 sm:px-3 sm:py-1.5 bg-gradient-to-r from-red-950/40 via-red-900/20 to-black hover:bg-white/10 text-white/90 hover:text-white border border-red-500/40 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer group"
-                title="Python Playwright Scraper & haberverbana.app Alan Adı Yönetimi"
+                id="open-platform-settings-btn"
+                onClick={onOpenPlatformSettings}
+                className="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/10 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer group"
+                title="Platform ve Site Tercihleri (Ayarlar)"
               >
-                <Terminal className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform" />
-                <span className="hidden md:inline">Python & Domain</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <Sliders className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-45 transition-transform" />
+                <span className="hidden sm:inline">Ayarlar</span>
               </button>
             )}
 
-            {/* Direct Open in New Tab button */}
-            <button
-              id="open-app-new-tab-btn"
-              onClick={handleOpenAppNewTab}
-              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/10 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-              title="Uygulamayı bağımsız yeni sekmede tam ekran aç"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden lg:inline">Yeni Sekmede Aç</span>
-            </button>
-
+            {/* Telegram Entegrasyonu */}
             <button
               id="open-telegram-btn"
               onClick={onOpenTelegramModal}
-              className="p-2 sm:px-3 sm:py-1.5 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="p-2 sm:px-3 sm:py-2 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
               title="Telegram Canlı Bildirim Ayarları"
             >
               <Send className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Telegram Bildirimleri</span>
+              <span className="hidden md:inline">Telegram</span>
             </button>
 
+            {/* Yeni Talep Ekle */}
             <button
               id="add-rule-btn"
               onClick={onOpenRuleDrawer}
-              className="px-3.5 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-lg shadow-red-900/30 flex items-center gap-1.5 transition-all active:scale-95"
+              className="px-3.5 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-lg shadow-red-900/30 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
-              <span className="whitespace-nowrap">+ Radar Kuralı</span>
+              <span className="whitespace-nowrap">+ Yeni Talep</span>
             </button>
           </div>
+
         </div>
       </div>
     </header>

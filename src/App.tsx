@@ -52,6 +52,8 @@ import { PricingModal } from './components/PricingModal';
 import { RulesManager } from './components/RulesManager';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { DomainAndScraperModal } from './components/DomainAndScraperModal';
+import { PlatformSettingsModal } from './components/PlatformSettingsModal';
+import { useAnimatedFavicon } from './utils/useAnimatedFavicon';
 import { getStoredTelegramConfig, sendRealTelegramAlert } from './services/telegramService';
 import { buildSearchUrl, getAiRecommendedPlatforms } from './utils/searchUrlBuilder';
 
@@ -65,6 +67,9 @@ const CATEGORIES: DealCategory[] = [
 ];
 
 export default function App() {
+  // Smooth Continuous Rotating Radar in Browser Address Bar / Favicon
+  useAnimatedFavicon(true);
+
   // Navigation & Filter State
   const [activeTab, setActiveTab] = useState<'feed' | 'rules' | 'extension' | 'pricing'>('feed');
   const [selectedCategory, setSelectedCategory] = useState<DealCategory>('Tümü');
@@ -72,6 +77,20 @@ export default function App() {
   const [minScoreFilter, setMinScoreFilter] = useState<number>(0); // 0 = all, 7 = hot, 8 = dip
   const [selectedPlatform, setSelectedPlatform] = useState<string>('Tümü');
   const [quickListFilter, setQuickListFilter] = useState<'all' | 'favorites' | 'savedLater'>('all');
+
+  // Platform Preferences State (empty = auto scan all 65+ platforms)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
+    const saved = localStorage.getItem('haberverbana_selected_platforms');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return [];
+  });
+  const [isPlatformSettingsOpen, setIsPlatformSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_selected_platforms', JSON.stringify(selectedPlatforms));
+  }, [selectedPlatforms]);
 
   // Group by Platform Toggle (Persisted across sessions)
   const [groupByPlatform, setGroupByPlatform] = useState<boolean>(() => {
@@ -813,9 +832,17 @@ export default function App() {
     if (selectedCategory !== 'Tümü' && deal.category !== selectedCategory) {
       return false;
     }
-    // Platform match
+    // Specific Single Platform Dropdown match
     if (selectedPlatform !== 'Tümü' && deal.platform !== selectedPlatform) {
       return false;
+    }
+    // Global Platform Preferences from Settings (if user specified custom platforms)
+    if (selectedPlatforms.length > 0 && selectedPlatforms[0] !== 'all') {
+      const match = selectedPlatforms.some(sp => 
+        deal.platform.toLowerCase().includes(sp.toLowerCase()) || 
+        sp.toLowerCase().includes(deal.platform.toLowerCase())
+      );
+      if (!match) return false;
     }
     // Min Score
     if (minScoreFilter > 0 && deal.opportunityScore < minScoreFilter) {
@@ -923,7 +950,8 @@ export default function App() {
         }}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
         onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
-        onOpenIntegrationModal={() => setIsIntegrationModalOpen(true)}
+        onOpenPlatformSettings={() => setIsPlatformSettingsOpen(true)}
+        selectedPlatforms={selectedPlatforms}
         unreadNotificationsCount={notifications.filter(n => !n.read).length}
         contrastMode={contrastMode}
         onToggleContrast={handleToggleContrast}
@@ -1450,6 +1478,21 @@ export default function App() {
         onSelectDeal={(deal) => {
           setSelectedDealForDetail(deal);
           setIsNotificationCenterOpen(false);
+        }}
+      />
+
+      {/* Platform & Site Settings Modal */}
+      <PlatformSettingsModal
+        isOpen={isPlatformSettingsOpen}
+        onClose={() => setIsPlatformSettingsOpen(false)}
+        selectedPlatforms={selectedPlatforms}
+        onSaveSelectedPlatforms={(platforms) => {
+          setSelectedPlatforms(platforms);
+          if (platforms.length === 0 || (platforms.length === 1 && platforms[0] === 'all')) {
+            showToast('🌐 Radar ayarları güncellendi: Tüm ilgili platformlar (65+ mağaza) otomatik taranıyor.');
+          } else {
+            showToast(`🎯 Radar ayarları güncellendi: ${platforms.length} özel platform hedeflendi.`);
+          }
         }}
       />
 

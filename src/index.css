@@ -144,3 +144,28 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #404040;
 }
+
+/* Continuous Radar Rotation Animations */
+@keyframes radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-spin {
+  animation: radar-spin 4s linear infinite !important;
+  transform-origin: center center;
+}
+
+.animate-radar-fast {
+  animation: radar-spin 2s linear infinite !important;
+  transform-origin: center center;
+}
+
+.animate-spin-slow {
+  animation: radar-spin 5s linear infinite !important;
+  transform-origin: center center;
+}
