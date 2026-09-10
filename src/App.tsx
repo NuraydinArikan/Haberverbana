@@ -546,6 +546,27 @@ export default function App() {
     showToast('Radar kuralı silindi.');
   };
 
+  const handleDeleteMultipleRules = (ruleIds: string[]) => {
+    setRules(prev => prev.filter(r => !ruleIds.includes(r.id)));
+    showToast(`🗑️ ${ruleIds.length} adet takip talebi başarıyla silindi.`);
+  };
+
+  const handleResetRulesToDefault = () => {
+    setRules(INITIAL_RULES);
+    showToast('🔄 Takip talepleri varsayılan örneklere sıfırlandı.');
+  };
+
+  const handleClearAllRules = () => {
+    const count = rules.length;
+    setRules([]);
+    showToast(`🧹 Tüm takip talepleri temizlendi (${count} talep silindi).`);
+  };
+
+  const handleToggleMultipleRules = (ruleIds: string[], active: boolean) => {
+    setRules(prev => prev.map(r => ruleIds.includes(r.id) ? { ...r, isActive: active } : r));
+    showToast(`⚡ ${ruleIds.length} adet talebin durumu "${active ? 'Aktif' : 'Durduruldu'}" olarak güncellendi.`);
+  };
+
   // 'Save Current View' feature: creates a new RadarRule based on active search, category, and score filters
   const handleSaveCurrentView = (openDrawerToCustomize: boolean = false) => {
     const trimmedQuery = searchQuery.trim();
@@ -1314,12 +1335,16 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 2: RADAR KURALLARIM */}
+        {/* VIEW 2: RADAR KURALLARIM & TALEPLER */}
         {activeTab === 'rules' && (
           <RulesManager
             rules={rules}
             onToggleRule={handleToggleRule}
             onDeleteRule={handleDeleteRule}
+            onDeleteMultipleRules={handleDeleteMultipleRules}
+            onResetRulesToDefault={handleResetRulesToDefault}
+            onClearAllRules={handleClearAllRules}
+            onToggleMultipleRules={handleToggleMultipleRules}
             onOpenCreateRule={() => setIsRuleDrawerOpen(true)}
             onScanRule={handleScanRule}
           />

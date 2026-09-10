@@ -159,9 +159,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-white text-black font-bold shadow-md'
                   : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
+              title="Takip Taleplerim ve Radar Kuralları"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Kurallarım ({activeRulesCount})</span>
+              <span>Taleplerim ({activeRulesCount})</span>
             </button>
 
             <button
