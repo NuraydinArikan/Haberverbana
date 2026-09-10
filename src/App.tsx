@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, 
   Sparkles, 
@@ -24,7 +24,10 @@ import {
   BellRing,
   Heart,
   Bookmark,
-  X
+  X,
+  Layers,
+  LayoutGrid,
+  Scale
 } from 'lucide-react';
 import { 
   DealCategory, 
@@ -37,7 +40,10 @@ import { INITIAL_DEALS, INITIAL_RULES } from './data/mockDeals';
 import { INITIAL_NOTIFICATIONS } from './data/mockNotifications';
 import { Navbar } from './components/Navbar';
 import { DealCard } from './components/DealCard';
+import { PlatformGroupedFeed } from './components/PlatformGroupedFeed';
 import { DealDetailModal } from './components/DealDetailModal';
+import { CompareDealsModal } from './components/CompareDealsModal';
+import { CompareDock } from './components/CompareDock';
 import { RuleDrawer } from './components/RuleDrawer';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { ChromeExtensionSimulator } from './components/ChromeExtensionSimulator';
@@ -66,6 +72,16 @@ export default function App() {
   const [minScoreFilter, setMinScoreFilter] = useState<number>(0); // 0 = all, 7 = hot, 8 = dip
   const [selectedPlatform, setSelectedPlatform] = useState<string>('Tümü');
   const [quickListFilter, setQuickListFilter] = useState<'all' | 'favorites' | 'savedLater'>('all');
+
+  // Group by Platform Toggle (Persisted across sessions)
+  const [groupByPlatform, setGroupByPlatform] = useState<boolean>(() => {
+    const saved = localStorage.getItem('haberverbana_group_by_platform');
+    return saved ? saved === 'true' : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_group_by_platform', String(groupByPlatform));
+  }, [groupByPlatform]);
 
   // Favorites & Watch Later State (Persisted across sessions)
   const [favoriteDealIds, setFavoriteDealIds] = useState<string[]>(() => {
@@ -121,6 +137,66 @@ export default function App() {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
+
+  // Compare Deals State (Up to 3 deals, persisted in localStorage)
+  const [selectedDealIdsForComparison, setSelectedDealIdsForComparison] = useState<string[]>(() => {
+    const saved = localStorage.getItem('haberverbana_compare_deal_ids');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return [];
+  });
+
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_compare_deal_ids', JSON.stringify(selectedDealIdsForComparison));
+  }, [selectedDealIdsForComparison]);
+
+  const selectedDealsForComparison = useMemo(() => {
+    return selectedDealIdsForComparison
+      .map(id => deals.find(d => d.id === id))
+      .filter((d): d is DealItem => Boolean(d));
+  }, [selectedDealIdsForComparison, deals]);
+
+  const handleToggleCompare = (deal: DealItem) => {
+    setSelectedDealIdsForComparison(prev => {
+      if (prev.includes(deal.id)) {
+        showToast(`⚖️ "${deal.title.slice(0, 25)}..." kıyaslama masasından çıkarıldı.`);
+        return prev.filter(id => id !== deal.id);
+      } else {
+        if (prev.length >= 3) {
+          showToast(`⚠️ Kıyaslama masasında en fazla 3 fırsat bulunabilir. Lütfen önce birini çıkarın.`);
+          return prev;
+        }
+        const next = [...prev, deal.id];
+        showToast(`⚖️ "${deal.title.slice(0, 25)}..." kıyaslamaya eklendi (${next.length}/3)!`);
+        return next;
+      }
+    });
+  };
+
+  const handleAddDealToCompare = (deal: DealItem) => {
+    setSelectedDealIdsForComparison(prev => {
+      if (prev.includes(deal.id)) return prev;
+      if (prev.length >= 3) {
+        showToast(`⚠️ En fazla 3 fırsat aynı anda kıyaslanabilir.`);
+        return prev;
+      }
+      const next = [...prev, deal.id];
+      showToast(`⚖️ "${deal.title.slice(0, 25)}..." kıyaslama tablosuna eklendi (${next.length}/3).`);
+      return next;
+    });
+  };
+
+  const handleRemoveDealFromCompare = (dealId: string) => {
+    setSelectedDealIdsForComparison(prev => prev.filter(id => id !== dealId));
+  };
+
+  const handleClearCompare = () => {
+    setSelectedDealIdsForComparison([]);
+    showToast(`🧹 Kıyaslama listesi temizlendi.`);
+  };
 
   // Auto-sync with backend / Python Playwright Ingestion API
   useEffect(() => {
@@ -223,6 +299,11 @@ export default function App() {
       }
       if (platform) {
         setSelectedPlatform(platform);
+        hasParam = true;
+      }
+      const groupedParam = params.get('grouped');
+      if (groupedParam !== null) {
+        setGroupByPlatform(groupedParam === '1' || groupedParam === 'true');
         hasParam = true;
       }
 
@@ -563,6 +644,12 @@ export default function App() {
         url.searchParams.delete('platform');
       }
 
+      if (groupByPlatform) {
+        url.searchParams.set('grouped', '1');
+      } else {
+        url.searchParams.delete('grouped');
+      }
+
       const ruleLabel = trimmedQuery 
         ? `${trimmedQuery} Radarı` 
         : (selectedCategory !== 'Tümü' ? `${selectedCategory} Fırsat Radarı` : 'Fırsat Radarı');
@@ -850,6 +937,52 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                {/* Fırsat Kıyaslama Butonu */}
+                <button
+                  id="feed-open-compare-modal-btn"
+                  onClick={() => setIsCompareModalOpen(true)}
+                  className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border ${
+                    selectedDealIdsForComparison.length > 0
+                      ? 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border-cyan-400/50 shadow-md shadow-cyan-950/40 font-bold'
+                      : 'bg-white/5 hover:bg-white/10 text-white/80 border-white/15'
+                  }`}
+                  title="Fırsatları yan yana kıyaslama tablosunda aç"
+                >
+                  <Scale className={`w-3.5 h-3.5 ${selectedDealIdsForComparison.length > 0 ? 'text-cyan-400' : 'text-white/60'}`} />
+                  <span>Kıyasla</span>
+                  {selectedDealIdsForComparison.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-cyan-400 text-black text-[10px] font-black font-mono">
+                      {selectedDealIdsForComparison.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  id="feed-toggle-group-by-platform-btn"
+                  onClick={() => {
+                    const next = !groupByPlatform;
+                    setGroupByPlatform(next);
+                    showToast(
+                      next 
+                        ? '📂 Platform gruplama aktif: Fırsatlar kaynak platformlarına göre düzenlendi.' 
+                        : '📋 Düz akış modu aktif: Tüm fırsatlar tek liste halinde gösteriliyor.',
+                      'system'
+                    );
+                  }}
+                  className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border ${
+                    groupByPlatform
+                      ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-950/50 font-bold'
+                      : 'bg-white/5 hover:bg-white/10 text-white/80 border-white/15'
+                  }`}
+                  title={groupByPlatform ? 'Düz liste görünümüne geç' : 'Fırsatları satıcı platformlarına göre grupla'}
+                >
+                  <Layers className={`w-3.5 h-3.5 ${groupByPlatform ? 'text-white' : 'text-amber-400'}`} />
+                  <span>Platforma Göre Grupla</span>
+                  {groupByPlatform && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  )}
+                </button>
+
                 <button
                   id="feed-add-rule-btn"
                   onClick={() => setIsRuleDrawerOpen(true)}
@@ -1065,9 +1198,57 @@ export default function App() {
                   </div>
                 </div>
               )}
+
+              {/* View Layout Switcher (Düz Liste vs Platforma Göre Grupla) */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs text-white/50 font-medium">Görünüm Düzeni:</span>
+                  <div className="inline-flex p-1 bg-black/60 border border-white/15 rounded-2xl shadow-inner">
+                    <button
+                      id="view-mode-flat-btn"
+                      onClick={() => {
+                        setGroupByPlatform(false);
+                        showToast('📋 Düz akış görünümü aktif.', 'system');
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        !groupByPlatform
+                          ? 'bg-white text-black font-bold shadow-md'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                      title="Tüm fırsatları tek bir kesintisiz liste halinde gösterir"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>Düz Liste</span>
+                    </button>
+
+                    <button
+                      id="view-mode-grouped-btn"
+                      onClick={() => {
+                        setGroupByPlatform(true);
+                        showToast('📂 Platform gruplama aktif: Fırsatlar kaynak platformlarına göre düzenlendi.', 'system');
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        groupByPlatform
+                          ? 'bg-red-600 text-white font-bold shadow-md shadow-red-950/60'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                      title="Fırsatları kaynak platformlarına (Amazon, Sahibinden, Trendyol vb.) göre ayrı panellere ayırır"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>Platforma Göre Grupla</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-white/50 font-mono">
+                  <span>{filteredDeals.length} Fırsat</span>
+                  <span>•</span>
+                  <span>{groupByPlatform ? '📂 Platform Gruplu' : '📋 Düz Liste'}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Deals Grid */}
+            {/* Deals Grid or Grouped by Platform */}
             {filteredDeals.length === 0 ? (
               <div className="p-12 rounded-3xl bg-[#0F0F0F] border border-white/10 text-center space-y-3">
                 <Radar className="w-10 h-10 text-white/20 mx-auto" />
@@ -1097,6 +1278,20 @@ export default function App() {
                   </button>
                 </div>
               </div>
+            ) : groupByPlatform ? (
+              <PlatformGroupedFeed
+                deals={filteredDeals}
+                favoriteDealIds={favoriteDealIds}
+                savedLaterDealIds={savedLaterDealIds}
+                compareDealIds={selectedDealIdsForComparison}
+                onToggleFavorite={handleToggleFavorite}
+                onToggleSavedForLater={handleToggleSavedForLater}
+                onToggleCompare={handleToggleCompare}
+                onShowToast={showToast}
+                onSelectDeal={(d) => setSelectedDealForDetail(d)}
+                onSendTelegram={(d) => handleTriggerTelegram(d)}
+                onSelectPlatformFilter={(p) => setSelectedPlatform(p)}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredDeals.map((deal) => (
@@ -1105,8 +1300,10 @@ export default function App() {
                     deal={deal}
                     isFavorite={favoriteDealIds.includes(deal.id)}
                     isSavedForLater={savedLaterDealIds.includes(deal.id)}
+                    isComparing={selectedDealIdsForComparison.includes(deal.id)}
                     onToggleFavorite={handleToggleFavorite}
                     onToggleSavedForLater={handleToggleSavedForLater}
+                    onToggleCompare={handleToggleCompare}
                     onShowToast={showToast}
                     onSelectDeal={(d) => setSelectedDealForDetail(d)}
                     onSendTelegram={(d) => handleTriggerTelegram(d)}
@@ -1154,8 +1351,34 @@ export default function App() {
         onSendTelegram={(d) => handleTriggerTelegram(d)}
         isFavorite={selectedDealForDetail ? favoriteDealIds.includes(selectedDealForDetail.id) : false}
         isSavedForLater={selectedDealForDetail ? savedLaterDealIds.includes(selectedDealForDetail.id) : false}
+        isComparing={selectedDealForDetail ? selectedDealIdsForComparison.includes(selectedDealForDetail.id) : false}
         onToggleFavorite={handleToggleFavorite}
         onToggleSavedForLater={handleToggleSavedForLater}
+        onToggleCompare={handleToggleCompare}
+      />
+
+      {/* Compare Floating Dock */}
+      <CompareDock
+        selectedDeals={selectedDealsForComparison}
+        onRemoveDeal={handleRemoveDealFromCompare}
+        onClearAll={handleClearCompare}
+        onOpenModal={() => setIsCompareModalOpen(true)}
+      />
+
+      {/* Side-by-Side Compare Deals Modal */}
+      <CompareDealsModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        selectedDeals={selectedDealsForComparison}
+        allDeals={deals}
+        onRemoveDeal={handleRemoveDealFromCompare}
+        onAddDeal={handleAddDealToCompare}
+        onClearAll={handleClearCompare}
+        onSelectDeal={(d) => {
+          setIsCompareModalOpen(false);
+          setSelectedDealForDetail(d);
+        }}
+        onShowToast={(msg) => showToast(msg, 'system')}
       />
 
       {/* Rule Drawer (Alttan Açılan Kural Formu) */}

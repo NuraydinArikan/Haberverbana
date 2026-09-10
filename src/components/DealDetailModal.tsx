@@ -14,7 +14,8 @@ import {
   Copy,
   FolderSync,
   Heart,
-  Bookmark
+  Bookmark,
+  Scale
 } from 'lucide-react';
 import { DealItem } from '../types';
 
@@ -24,8 +25,10 @@ interface DealDetailModalProps {
   onSendTelegram: (deal: DealItem) => void;
   isFavorite?: boolean;
   isSavedForLater?: boolean;
+  isComparing?: boolean;
   onToggleFavorite?: (dealId: string) => void;
   onToggleSavedForLater?: (dealId: string) => void;
+  onToggleCompare?: (deal: DealItem) => void;
 }
 
 export const DealDetailModal: React.FC<DealDetailModalProps> = ({
@@ -34,8 +37,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
   onSendTelegram,
   isFavorite,
   isSavedForLater,
+  isComparing,
   onToggleFavorite,
-  onToggleSavedForLater
+  onToggleSavedForLater,
+  onToggleCompare
 }) => {
   const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
   const [aiReport, setAiReport] = useState<any>(null);
@@ -93,6 +98,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
           <div className="flex items-center gap-2">
             {/* Quick Action Button Group */}
             <div className="flex items-center gap-1 p-0.5 rounded-xl bg-white/5 border border-white/10">
+              <button
+                type="button"
+                onClick={() => onToggleCompare?.(deal)}
+                className={`p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isComparing
+                    ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50'
+                    : 'text-white/70 hover:text-cyan-400 hover:bg-white/10'
+                }`}
+                title={isComparing ? 'Karşılaştırma Masasından Çıkar' : 'Karşılaştırma Masasına Ekle (Maks 3)'}
+              >
+                <Scale className={`w-3.5 h-3.5 ${isComparing ? 'text-cyan-400' : ''}`} />
+                <span className="hidden sm:inline text-xs">{isComparing ? 'Kıyaslamada' : 'Kıyasla'}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => onToggleFavorite?.(deal.id)}

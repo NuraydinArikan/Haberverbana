@@ -19,7 +19,8 @@ import {
   FileText,
   X,
   Globe,
-  MessageCircle
+  MessageCircle,
+  Scale
 } from 'lucide-react';
 import { DealItem } from '../types';
 
@@ -29,8 +30,10 @@ interface DealCardProps {
   onSendTelegram: (deal: DealItem) => void;
   isFavorite?: boolean;
   isSavedForLater?: boolean;
+  isComparing?: boolean;
   onToggleFavorite?: (dealId: string) => void;
   onToggleSavedForLater?: (dealId: string) => void;
+  onToggleCompare?: (deal: DealItem) => void;
   onShowToast?: (msg: string) => void;
 }
 
@@ -40,8 +43,10 @@ export const DealCard: React.FC<DealCardProps> = ({
   onSendTelegram,
   isFavorite,
   isSavedForLater,
+  isComparing,
   onToggleFavorite,
   onToggleSavedForLater,
+  onToggleCompare,
   onShowToast
 }) => {
   const isHighOpportunity = deal.opportunityScore >= 8.0;
@@ -93,6 +98,11 @@ export const DealCard: React.FC<DealCardProps> = ({
     e.stopPropagation();
     setLocalSavedLater(!savedLaterActive);
     onToggleSavedForLater?.(deal.id);
+  };
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleCompare?.(deal);
   };
 
   const handleToggleMenu = (e: React.MouseEvent) => {
@@ -189,7 +199,11 @@ export const DealCard: React.FC<DealCardProps> = ({
     <div 
       id={`deal-card-${deal.id}`}
       onContextMenu={handleCardContextMenu}
-      className="group relative bg-[#0F0F0F] rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-200 overflow-visible flex flex-col justify-between hover:shadow-2xl hover:shadow-black/60"
+      className={`group relative bg-[#0F0F0F] rounded-2xl border transition-all duration-200 overflow-visible flex flex-col justify-between hover:shadow-2xl hover:shadow-black/60 ${
+        isComparing
+          ? 'border-cyan-500/80 ring-2 ring-cyan-500/60 shadow-xl shadow-cyan-950/40 bg-[#101518]'
+          : 'border-white/10 hover:border-white/20'
+      }`}
     >
       {/* Top Media & Floating Badges */}
       <div className="relative aspect-16/10 rounded-t-2xl overflow-hidden bg-black/40">
@@ -232,6 +246,27 @@ export const DealCard: React.FC<DealCardProps> = ({
             id={`deal-quick-actions-bar-${deal.id}`}
             className="flex items-center gap-1 bg-black/85 backdrop-blur-md rounded-xl p-1 border border-white/20 shadow-xl shadow-black/80"
           >
+            {/* Karşılaştır / Kıyasla */}
+            <button
+              id={`btn-compare-${deal.id}`}
+              type="button"
+              onClick={handleCompareClick}
+              className={`p-1.5 px-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isComparing
+                  ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/60 shadow-sm shadow-cyan-950/50 scale-105'
+                  : 'text-white/80 hover:text-cyan-400 hover:bg-white/10'
+              }`}
+              title={isComparing ? 'Karşılaştırma Listesinden Çıkar' : 'Karşılaştırmaya Ekle (Maks 3)'}
+              aria-label={isComparing ? 'Karşılaştırma Listesinden Çıkar' : 'Karşılaştırmaya Ekle'}
+            >
+              <Scale className={`w-3.5 h-3.5 transition-transform duration-200 ${isComparing ? 'text-cyan-400 scale-110' : ''}`} />
+              <span className="text-[10px] hidden sm:inline font-mono">
+                {isComparing ? 'Seçildi' : 'Kıyasla'}
+              </span>
+            </button>
+
+            <span className="w-px h-3.5 bg-white/20" />
+
             {/* Favorilere Ekle / Çıkar */}
             <button
               id={`btn-fav-${deal.id}`}
@@ -496,33 +531,47 @@ export const DealCard: React.FC<DealCardProps> = ({
           <div className="my-1.5 border-t border-white/10" />
 
           {/* Quick List Toggles */}
-          <div className="grid grid-cols-2 gap-1 pt-0.5">
+          <div className="grid grid-cols-3 gap-1 pt-0.5">
+            <button
+              id={`ctx-compare-${deal.id}`}
+              type="button"
+              onClick={handleCompareClick}
+              className={`p-2 rounded-xl flex items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
+                isComparing
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-cyan-400 border border-white/5'
+              }`}
+            >
+              <Scale className={`w-3.5 h-3.5 ${isComparing ? 'text-cyan-400' : ''}`} />
+              <span className="text-[10px]">{isComparing ? 'Seçildi' : 'Kıyasla'}</span>
+            </button>
+
             <button
               id={`ctx-fav-${deal.id}`}
               type="button"
               onClick={handleFavoriteClick}
-              className={`p-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              className={`p-2 rounded-xl flex items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
                 favoriteActive
                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                   : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-rose-400 border border-white/5'
               }`}
             >
               <Heart className={`w-3.5 h-3.5 ${favoriteActive ? 'fill-rose-500 text-rose-500' : ''}`} />
-              <span className="text-[11px]">{favoriteActive ? 'Favorilerde' : 'Favorile'}</span>
+              <span className="text-[10px]">{favoriteActive ? 'Favori' : 'Favorile'}</span>
             </button>
 
             <button
               id={`ctx-later-${deal.id}`}
               type="button"
               onClick={handleSaveLaterClick}
-              className={`p-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              className={`p-2 rounded-xl flex items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
                 savedLaterActive
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-amber-400 border border-white/5'
               }`}
             >
               <Bookmark className={`w-3.5 h-3.5 ${savedLaterActive ? 'fill-amber-400 text-amber-400' : ''}`} />
-              <span className="text-[11px]">{savedLaterActive ? 'Listede' : 'Daha Sonra'}</span>
+              <span className="text-[10px]">{savedLaterActive ? 'Listede' : 'Daha Sonra'}</span>
             </button>
           </div>
         </div>
