@@ -28,13 +28,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install
 
       - name: Build
         run: npm run build
+
+      - name: Ensure CNAME and SPA Fallback
+        run: |
+          echo "haberverbana.app" > ./dist/CNAME
+          cp ./dist/index.html ./dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
