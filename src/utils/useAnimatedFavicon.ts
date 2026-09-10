@@ -2,11 +2,15 @@ import { useEffect, useRef } from 'react';
 
 /**
  * useAnimatedFavicon:
- * Rotates a crisp radar scanner inside the browser tab favicon dynamically.
- * Features:
- * - 0 CPU when the browser tab is hidden / in background.
- * - Smooth rotating beam and target ping.
- * - Updates the <link rel="icon"> tag smoothly.
+ * Renders the high-contrast, crisp white-ringed radar logo (the clear top logo chosen by user)
+ * with a live rotating scanner beam in the browser tab favicon.
+ * 
+ * Quality & Performance Guarantees:
+ * - 64x64 Hi-DPI rendering for razor-sharp antialiasing at 16x16 and 32x32 tab sizes.
+ * - Solid pure-white concentric rings (#FFFFFF, 0.9 opacity) ensuring instant radar legibility.
+ * - Vibrant crimson red gradient base (no dark mud/shadows).
+ * - Bright emerald green deal blip at 2 o'clock with white core.
+ * - 0 CPU usage when the browser tab is hidden/inactive.
  */
 export function useAnimatedFavicon(enabled: boolean = true) {
   const angleRef = useRef(0);
@@ -16,14 +20,13 @@ export function useAnimatedFavicon(enabled: boolean = true) {
   useEffect(() => {
     if (!enabled || typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    // Create an offscreen canvas for rendering the rotating favicon
+    // 64x64 Hi-DPI canvas for pristine sharpness
     const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
+    canvas.width = 64;
+    canvas.height = 64;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Find or create favicon link tag
     let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
     if (!faviconLink) {
       faviconLink = document.createElement('link');
@@ -32,109 +35,128 @@ export function useAnimatedFavicon(enabled: boolean = true) {
     }
 
     const drawRadar = (angle: number) => {
-      ctx.clearRect(0, 0, 32, 32);
+      ctx.clearRect(0, 0, 64, 64);
 
-      // 1. Draw rounded squircle background (#DC2626 -> #580d0d gradient)
-      const radius = 8;
+      // 1. High-contrast rounded badge background (#EF4444 -> #DC2626 -> #B91C1C)
+      const radius = 15;
       ctx.beginPath();
-      ctx.moveTo(radius, 0);
-      ctx.lineTo(32 - radius, 0);
-      ctx.quadraticCurveTo(32, 0, 32, radius);
-      ctx.lineTo(32, 32 - radius);
-      ctx.quadraticCurveTo(32, 32, 32 - radius, 32);
-      ctx.lineTo(radius, 32);
-      ctx.quadraticCurveTo(0, 32, 0, 32 - radius);
-      ctx.lineTo(0, radius);
-      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.moveTo(radius, 2);
+      ctx.lineTo(62 - radius, 2);
+      ctx.quadraticCurveTo(62, 2, 62, radius);
+      ctx.lineTo(62, 62 - radius);
+      ctx.quadraticCurveTo(62, 62, 62 - radius, 62);
+      ctx.lineTo(radius, 62);
+      ctx.quadraticCurveTo(2, 62, 2, 62 - radius);
+      ctx.lineTo(2, radius);
+      ctx.quadraticCurveTo(2, 2, radius, 2);
       ctx.closePath();
 
-      const bgGrad = ctx.createLinearGradient(0, 0, 32, 32);
-      bgGrad.addColorStop(0, '#DC2626');
-      bgGrad.addColorStop(0.7, '#991B1B');
-      bgGrad.addColorStop(1, '#450A0A');
+      const bgGrad = ctx.createLinearGradient(0, 0, 64, 64);
+      bgGrad.addColorStop(0, '#EF4444');
+      bgGrad.addColorStop(0.6, '#DC2626');
+      bgGrad.addColorStop(1, '#B91C1C');
       ctx.fillStyle = bgGrad;
       ctx.fill();
 
-      // Border highlight
-      ctx.strokeStyle = 'rgba(248, 113, 113, 0.45)';
-      ctx.lineWidth = 1;
+      // Subtle light border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      const cx = 16;
-      const cy = 16;
+      const cx = 32;
+      const cy = 32;
 
-      // 2. Radar concentric rings
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
-      ctx.lineWidth = 0.8;
+      // 2. High-Contrast Pure White Concentric Rings (The distinctive top logo)
+      ctx.strokeStyle = '#FFFFFF';
+      
+      // Outer ring
+      ctx.lineWidth = 2.2;
+      ctx.globalAlpha = 0.9;
       ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 23, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      // Middle ring
+      ctx.lineWidth = 2.0;
+      ctx.globalAlpha = 0.85;
       ctx.beginPath();
-      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 15, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 3. Crosshairs
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.lineWidth = 0.7;
+      // Inner ring
+      ctx.lineWidth = 1.8;
+      ctx.globalAlpha = 0.85;
       ctx.beginPath();
-      ctx.moveTo(cx, 4);
-      ctx.lineTo(cx, 28);
-      ctx.moveTo(4, cy);
-      ctx.lineTo(28, cy);
+      ctx.arc(cx, cy, 7.5, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 4. Rotating scanner beam wedge
-      const sweepAngle = Math.PI / 3.5; // ~50 degrees
+      // 3. High-Contrast White Crosshairs
+      ctx.lineWidth = 1.8;
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(cx, 7);
+      ctx.lineTo(cx, 57);
+      ctx.moveTo(7, cy);
+      ctx.lineTo(57, cy);
+      ctx.stroke();
+
+      // 4. Rotating Scanner Beam Wedge
+      ctx.globalAlpha = 1.0;
+      const sweepAngle = Math.PI / 4; // 45 degrees
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, 12.5, angle, angle + sweepAngle);
+      ctx.arc(cx, cy, 23, angle, angle + sweepAngle);
       ctx.closePath();
 
-      const sweepGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 12.5);
-      sweepGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-      sweepGrad.addColorStop(0.5, 'rgba(248, 113, 113, 0.35)');
-      sweepGrad.addColorStop(1, 'rgba(220, 38, 38, 0)');
+      const sweepGrad = ctx.createRadialGradient(cx, cy, 3, cx, cy, 23);
+      sweepGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
+      sweepGrad.addColorStop(0.6, 'rgba(254, 202, 202, 0.2)');
+      sweepGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
       ctx.fillStyle = sweepGrad;
       ctx.fill();
 
-      // Leading beam edge
+      // Bright white leading beam edge
       ctx.strokeStyle = '#FFFFFF';
-      ctx.lineWidth = 1.3;
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(angle + sweepAngle) * 12.5, cy + Math.sin(angle + sweepAngle) * 12.5);
+      ctx.lineTo(cx + Math.cos(angle + sweepAngle) * 23, cy + Math.sin(angle + sweepAngle) * 23);
       ctx.stroke();
       ctx.restore();
 
-      // 5. Detected Deal blip (emerald green dot)
-      ctx.fillStyle = '#10B981';
-      ctx.beginPath();
-      ctx.arc(22, 10, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 6. Center hub dot
+      // 5. Center Hub Core
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
-      ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Update favicon link
+      // 6. Detected Deal Blip: Glowing Emerald Green Dot at 2 o'clock (x: 44, y: 20)
+      ctx.fillStyle = '#10B981';
+      ctx.beginPath();
+      ctx.arc(44, 20, 4.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White center of deal blip
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(44, 20, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Update favicon link href
       faviconLink.href = canvas.toDataURL('image/png');
     };
 
     const animate = (timestamp: number) => {
       if (document.hidden) {
-        // Tab is hidden; stop animation to save battery
+        // Stop animation when tab is not focused to save battery
         animFrameRef.current = requestAnimationFrame(animate);
         return;
       }
 
-      // Throttle to ~12-14 FPS for minimal resource usage
+      // Smooth ~12 FPS updates
       if (timestamp - lastTimeRef.current > 80) {
-        angleRef.current = (angleRef.current + 0.18) % (Math.PI * 2);
+        angleRef.current = (angleRef.current + 0.16) % (Math.PI * 2);
         drawRadar(angleRef.current);
         lastTimeRef.current = timestamp;
       }

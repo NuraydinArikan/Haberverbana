@@ -34,6 +34,7 @@ interface DealCardProps {
   onToggleFavorite?: (dealId: string) => void;
   onToggleSavedForLater?: (dealId: string) => void;
   onToggleCompare?: (deal: DealItem) => void;
+  onDismissDeal?: (dealId: string) => void;
   onShowToast?: (msg: string) => void;
 }
 
@@ -47,6 +48,7 @@ export const DealCard: React.FC<DealCardProps> = ({
   onToggleFavorite,
   onToggleSavedForLater,
   onToggleCompare,
+  onDismissDeal,
   onShowToast
 }) => {
   const isHighOpportunity = deal.opportunityScore >= 8.0;
@@ -103,6 +105,15 @@ export const DealCard: React.FC<DealCardProps> = ({
   const handleCompareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleCompare?.(deal);
+  };
+
+  const handleDismissClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDismissDeal) {
+      onDismissDeal(deal.id);
+    } else if (onShowToast) {
+      onShowToast(`"${deal.title}" önerisi akıştan kaldırıldı.`);
+    }
   };
 
   const handleToggleMenu = (e: React.MouseEvent) => {
@@ -305,6 +316,21 @@ export const DealCard: React.FC<DealCardProps> = ({
               <span className="text-[10px] hidden sm:inline font-mono">
                 {savedLaterActive ? 'Listede' : 'Daha Sonra'}
               </span>
+            </button>
+
+            <span className="w-px h-3.5 bg-white/20" />
+
+            {/* Tek Müdahale ile Öneriyi Kaldır (İlgilenmiyorum) */}
+            <button
+              id={`btn-dismiss-${deal.id}`}
+              type="button"
+              onClick={handleDismissClick}
+              className="p-1.5 px-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer text-white/60 hover:text-red-400 hover:bg-red-500/20"
+              title="Bu fırsat önerisini tek tıkla akıştan kaldır (İlgilenmiyorum)"
+              aria-label="Öneriyi Kaldır"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="text-[10px] hidden sm:inline font-mono">Kaldır</span>
             </button>
 
             <span className="w-px h-3.5 bg-white/20" />
@@ -572,6 +598,27 @@ export const DealCard: React.FC<DealCardProps> = ({
             >
               <Bookmark className={`w-3.5 h-3.5 ${savedLaterActive ? 'fill-amber-400 text-amber-400' : ''}`} />
               <span className="text-[10px]">{savedLaterActive ? 'Listede' : 'Daha Sonra'}</span>
+            </button>
+          </div>
+
+          {/* Menü Altı: Tek Tıkla Öneriyi Kaldır */}
+          <div className="pt-1.5 mt-1.5 border-t border-white/10">
+            <button
+              id={`ctx-dismiss-${deal.id}`}
+              type="button"
+              onClick={(e) => {
+                setIsContextMenuOpen(false);
+                handleDismissClick(e);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-red-400 hover:bg-red-500/15 transition-colors cursor-pointer"
+            >
+              <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+                <X className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="font-semibold text-red-400 text-xs">Bu Fırsatı Akıştan Kaldır</div>
+                <p className="text-[10px] text-white/40">Bu öneriyi bir daha gösterme</p>
+              </div>
             </button>
           </div>
         </div>

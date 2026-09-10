@@ -1,52 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#DC2626" />
-      <stop offset="60%" stop-color="#991B1B" />
-      <stop offset="100%" stop-color="#450A0A" />
+    <!-- Vibrant High-Contrast Red Gradient -->
+    <linearGradient id="redBadge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444" />
+      <stop offset="60%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#B91C1C" />
     </linearGradient>
-    <linearGradient id="sweep" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8" />
-      <stop offset="40%" stop-color="#F87171" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="#DC2626" stop-opacity="0" />
+
+    <!-- Radar Scanner Sweep Gradient -->
+    <linearGradient id="radarSweep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.65" />
+      <stop offset="60%" stop-color="#FCA5A5" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#EF4444" stop-opacity="0" />
     </linearGradient>
-    <style>
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      .rotating-beam {
-        transform-origin: 32px 32px;
-        animation: spin 3s linear infinite;
-      }
-    </style>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#34D399" flood-opacity="0.9" />
+    </filter>
   </defs>
 
-  <!-- Background tile with subtle border -->
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)" stroke="#F87171" stroke-width="2" stroke-opacity="0.5" />
+  <!-- High-contrast rounded badge -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#redBadge)" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.4" />
 
-  <!-- Outer & Inner Radar Rings -->
-  <circle cx="32" cy="32" r="23" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.7" stroke-dasharray="2 3" />
-  <circle cx="32" cy="32" r="15" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.7" />
-  <circle cx="32" cy="32" r="7.5" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.5" />
+  <!-- 3 Pure White High-Contrast Radar Rings (Distinct & Legible at 16x16) -->
+  <circle cx="32" cy="32" r="23" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.9" />
+  <circle cx="32" cy="32" r="15" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.85" />
+  <circle cx="32" cy="32" r="7.5" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.85" />
 
-  <!-- Radar Crosshairs -->
-  <line x1="32" y1="8" x2="32" y2="56" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" stroke-linecap="round" />
-  <line x1="8" y1="32" x2="56" y2="32" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" stroke-linecap="round" />
+  <!-- High-Contrast Radar Crosshairs -->
+  <line x1="32" y1="7" x2="32" y2="57" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.8" stroke-linecap="round" />
+  <line x1="7" y1="32" x2="57" y2="32" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.8" stroke-linecap="round" />
 
-  <!-- Animated Rotating Scanner Sweep Group -->
-  <g class="rotating-beam">
-    <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.5s" repeatCount="indefinite" />
-    <!-- Scanner wedge -->
-    <path d="M 32 32 L 48 16 A 23 23 0 0 1 55 32 Z" fill="url(#sweep)" />
-    <!-- Leading beam line -->
-    <line x1="32" y1="32" x2="48" y2="16" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
+  <!-- Rotating Radar Beam (SVG Hardware-Accelerated Animation) -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="3s" repeatCount="indefinite" />
+    <!-- Light Sweep Wedge -->
+    <path d="M 32 32 L 48 16 A 23 23 0 0 1 55 32 Z" fill="url(#radarSweep)" />
+    <!-- Bright Leading Beam -->
+    <line x1="32" y1="32" x2="48.5" y2="15.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
   </g>
 
-  <!-- Center Core -->
-  <circle cx="32" cy="32" r="3.5" fill="#FFFFFF" />
+  <!-- Center Pivot Core -->
+  <circle cx="32" cy="32" r="3.2" fill="#FFFFFF" />
 
-  <!-- Detected Deal Blip -->
-  <circle cx="43" cy="21" r="3.8" fill="#10B981" />
-  <circle cx="43" cy="21" r="5.5" stroke="#6EE7B7" stroke-width="1.2" stroke-opacity="0.8" />
+  <!-- Detected Deal Blip: Glowing Emerald/Cyan Dot at 2 o'clock -->
+  <g filter="url(#glow)">
+    <circle cx="44" cy="20" r="4.2" fill="#10B981" />
+    <circle cx="44" cy="20" r="1.8" fill="#FFFFFF" />
+  </g>
 </svg>

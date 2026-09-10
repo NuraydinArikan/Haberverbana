@@ -27,7 +27,10 @@ import {
   X,
   Layers,
   LayoutGrid,
-  Scale
+  Scale,
+  Power,
+  RotateCw,
+  ArrowUpDown
 } from 'lucide-react';
 import { 
   DealCategory, 
@@ -67,8 +70,83 @@ const CATEGORIES: DealCategory[] = [
 ];
 
 export default function App() {
-  // Smooth Continuous Rotating Radar in Browser Address Bar / Favicon
-  useAnimatedFavicon(true);
+  // Radar Active / Paused State (User can completely turn off radar to avoid confusion)
+  const [isRadarActive, setIsRadarActive] = useState<boolean>(() => {
+    const saved = localStorage.getItem('haberverbana_radar_active');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_radar_active', String(isRadarActive));
+  }, [isRadarActive]);
+
+  // Smooth Continuous Rotating Radar in Browser Address Bar / Favicon (Only active when radar is running)
+  useAnimatedFavicon(isRadarActive);
+
+  // Periodic Suggestion to Re-Open Radar when it is turned off
+  const [showRadarResumePrompt, setShowRadarResumePrompt] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isRadarActive) {
+      setShowRadarResumePrompt(false);
+      return;
+    }
+
+    // Every 75 seconds, gently suggest re-opening radar if it's off
+    const interval = setInterval(() => {
+      setShowRadarResumePrompt(true);
+    }, 75000);
+
+    return () => clearInterval(interval);
+  }, [isRadarActive]);
+
+  // Dismissed / Removed Deal IDs (Persisted across sessions)
+  const [dismissedDealIds, setDismissedDealIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('haberverbana_dismissed_deal_ids');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('haberverbana_dismissed_deal_ids', JSON.stringify(dismissedDealIds));
+  }, [dismissedDealIds]);
+
+  const handleDismissDeal = (dealId: string) => {
+    const targetDeal = deals.find(d => d.id === dealId);
+    setDismissedDealIds(prev => [...prev, dealId]);
+    showToast(
+      targetDeal ? `🗑️ "${targetDeal.title}" akıştan kaldırıldı.` : '🗑️ Fırsat akıştan kaldırıldı.',
+      'system'
+    );
+  };
+
+  const handleRestoreDismissedDeals = () => {
+    setDismissedDealIds([]);
+    showToast('🔄 Kaldırılan tüm fırsat önerileri akışa geri yüklendi.', 'system');
+  };
+
+  // Sorting Mode & Dynamic Rotation State (Prevents same deal always sticking to top)
+  const [sortMode, setSortMode] = useState<'dynamic' | 'score' | 'newest' | 'discount'>('dynamic');
+  const [rotationOffset, setRotationOffset] = useState<number>(() => {
+    // Randomize initial starting offset so top recommendation changes between sessions
+    return Math.floor(Math.random() * 5);
+  });
+
+  // Periodically rotate top deals when radar is active (every 60s)
+  useEffect(() => {
+    if (!isRadarActive) return;
+    const interval = setInterval(() => {
+      setRotationOffset(prev => prev + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [isRadarActive]);
+
+  const handleRotateDeals = () => {
+    setRotationOffset(prev => prev + 1);
+    showToast('✨ Fırsat akışı döndürüldü: Farklı öne çıkan fırsatlar yukarı taşındı!', 'system');
+  };
 
   // Navigation & Filter State
   const [activeTab, setActiveTab] = useState<'feed' | 'rules' | 'extension' | 'pricing'>('feed');
@@ -818,46 +896,85 @@ export default function App() {
     showToast(`"${newRule.name}" teknik belgesi radar kuralına dönüştürüldü!`);
   };
 
-  // Filtering Logic
-  const filteredDeals = deals.filter((deal) => {
-    // Quick List Filter: Favoriler veya Daha Sonra İncele
-    if (quickListFilter === 'favorites' && !favoriteDealIds.includes(deal.id)) {
-      return false;
-    }
-    if (quickListFilter === 'savedLater' && !savedLaterDealIds.includes(deal.id)) {
-      return false;
-    }
+  // Filtering & Dynamic Rotation Logic (Prevents same item always sticking to top)
+  const filteredDeals = useMemo(() => {
+    // 1. Filter out dismissed deals and match user criteria
+    const list = deals.filter((deal) => {
+      // Tek tıkla kaldırılan ürünleri akıştan gizle
+      if (dismissedDealIds.includes(deal.id)) {
+        return false;
+      }
 
-    // Category match
-    if (selectedCategory !== 'Tümü' && deal.category !== selectedCategory) {
-      return false;
+      // Quick List Filter: Favoriler veya Daha Sonra İncele
+      if (quickListFilter === 'favorites' && !favoriteDealIds.includes(deal.id)) {
+        return false;
+      }
+      if (quickListFilter === 'savedLater' && !savedLaterDealIds.includes(deal.id)) {
+        return false;
+      }
+
+      // Category match
+      if (selectedCategory !== 'Tümü' && deal.category !== selectedCategory) {
+        return false;
+      }
+      // Specific Single Platform Dropdown match
+      if (selectedPlatform !== 'Tümü' && deal.platform !== selectedPlatform) {
+        return false;
+      }
+      // Global Platform Preferences from Settings (if user specified custom platforms)
+      if (selectedPlatforms.length > 0 && selectedPlatforms[0] !== 'all') {
+        const match = selectedPlatforms.some(sp => 
+          deal.platform.toLowerCase().includes(sp.toLowerCase()) || 
+          sp.toLowerCase().includes(deal.platform.toLowerCase())
+        );
+        if (!match) return false;
+      }
+      // Min Score
+      if (minScoreFilter > 0 && deal.opportunityScore < minScoreFilter) {
+        return false;
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const inTitle = deal.title.toLowerCase().includes(q);
+        const inSummary = deal.summary.toLowerCase().includes(q);
+        const inTags = deal.tags.some(t => t.toLowerCase().includes(q));
+        if (!inTitle && !inSummary && !inTags) return false;
+      }
+      return true;
+    });
+
+    // 2. Dynamic Rotation or Explicit Sorting
+    if (sortMode === 'score') {
+      return [...list].sort((a, b) => b.opportunityScore - a.opportunityScore);
+    } else if (sortMode === 'newest') {
+      return [...list].sort((a, b) => (b.foundAt || '').localeCompare(a.foundAt || ''));
+    } else if (sortMode === 'discount') {
+      return [...list].sort((a, b) => {
+        const discA = (a.marketAvgPrice - a.currentPrice) / a.marketAvgPrice;
+        const discB = (b.marketAvgPrice - b.currentPrice) / b.marketAvgPrice;
+        return discB - discA;
+      });
+    } else {
+      // 'dynamic': Döngüsel kaydırma (Kullanıcı her girdiğinde veya 'Fırsatları Döndür'e bastığında en üstte farklı bir sıcak fırsat görünür)
+      if (list.length <= 1) return list;
+      const offset = rotationOffset % list.length;
+      return [...list.slice(offset), ...list.slice(0, offset)];
     }
-    // Specific Single Platform Dropdown match
-    if (selectedPlatform !== 'Tümü' && deal.platform !== selectedPlatform) {
-      return false;
-    }
-    // Global Platform Preferences from Settings (if user specified custom platforms)
-    if (selectedPlatforms.length > 0 && selectedPlatforms[0] !== 'all') {
-      const match = selectedPlatforms.some(sp => 
-        deal.platform.toLowerCase().includes(sp.toLowerCase()) || 
-        sp.toLowerCase().includes(deal.platform.toLowerCase())
-      );
-      if (!match) return false;
-    }
-    // Min Score
-    if (minScoreFilter > 0 && deal.opportunityScore < minScoreFilter) {
-      return false;
-    }
-    // Search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const inTitle = deal.title.toLowerCase().includes(q);
-      const inSummary = deal.summary.toLowerCase().includes(q);
-      const inTags = deal.tags.some(t => t.toLowerCase().includes(q));
-      if (!inTitle && !inSummary && !inTags) return false;
-    }
-    return true;
-  });
+  }, [
+    deals,
+    dismissedDealIds,
+    quickListFilter,
+    favoriteDealIds,
+    savedLaterDealIds,
+    selectedCategory,
+    selectedPlatform,
+    selectedPlatforms,
+    minScoreFilter,
+    searchQuery,
+    sortMode,
+    rotationOffset
+  ]);
 
   return (
     <div className={`min-h-screen bg-[#0A0A0A] text-[#F5F5F5] flex flex-col font-sans selection:bg-red-600 selection:text-white transition-colors duration-200 ${contrastMode === 'high-contrast' ? 'high-contrast' : ''}`}>
@@ -957,6 +1074,17 @@ export default function App() {
         onToggleContrast={handleToggleContrast}
         user={user}
         activeRulesCount={rules.filter(r => r.isActive).length}
+        isRadarActive={isRadarActive}
+        onToggleRadarActive={() => {
+          const next = !isRadarActive;
+          setIsRadarActive(next);
+          showToast(
+            next 
+              ? '⚡ Fırsat Radarı açıldı! Canlı tarama ve fırsat uyarıları devrede.' 
+              : '⏸️ Fırsat Radarı kapatıldı. Otomatik tarama duraklatıldı.',
+            'system'
+          );
+        }}
       />
 
       {/* Main Content Area */}
@@ -972,12 +1100,19 @@ export default function App() {
                     <Zap className="w-5 h-5 text-red-500" />
                     <span>Canlı Fırsat Akışı</span>
                   </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Canlı Taranıyor
-                  </span>
+                  {isRadarActive ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      Canlı Taranıyor
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      Radar Kapalı
+                    </span>
+                  )}
                   <span className="text-xs text-white/50 font-mono">
-                    ({filteredDeals.length} Fırsat Tespit Edildi)
+                    ({filteredDeals.length} Fırsat)
                   </span>
                 </div>
                 <p className="text-xs text-white/60 mt-1">
@@ -986,6 +1121,41 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                {/* Radar Aç/Kapat Butonu (Kullanıcı kafası karışınca tek tıkla radarı durdurabilir) */}
+                <button
+                  id="feed-toggle-radar-btn"
+                  onClick={() => {
+                    const next = !isRadarActive;
+                    setIsRadarActive(next);
+                    showToast(
+                      next 
+                        ? '⚡ Fırsat Radarı açıldı! Canlı tarama ve fırsat uyarıları devrede.' 
+                        : '⏸️ Fırsat Radarı kapatıldı. Otomatik tarama duraklatıldı.',
+                      'system'
+                    );
+                  }}
+                  className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border ${
+                    isRadarActive
+                      ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/40'
+                      : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/50 shadow-md font-bold'
+                  }`}
+                  title={isRadarActive ? 'Fırsat radarını tamamen kapat (duraklat)' : 'Fırsat radarını yeniden başlat'}
+                >
+                  <Power className="w-3.5 h-3.5" />
+                  <span>{isRadarActive ? 'Radar Açık' : 'Radarı Aç'}</span>
+                </button>
+
+                {/* Fırsatları Döndür Butonu (En üstte hep aynı öneri kalmasın) */}
+                <button
+                  id="feed-rotate-deals-btn"
+                  onClick={handleRotateDeals}
+                  className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-95 cursor-pointer"
+                  title="Farklı fırsat önerilerini üst sıralara taşır ve akışı tazeler"
+                >
+                  <RotateCw className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Fırsatları Döndür</span>
+                </button>
+
                 {/* Fırsat Kıyaslama Butonu */}
                 <button
                   id="feed-open-compare-modal-btn"
@@ -1050,6 +1220,88 @@ export default function App() {
                 </button>
               </div>
             </div>
+
+            {/* Radar Kapalı Durum Bildirim Paneli */}
+            {!isRadarActive && (
+              <div className="bg-gradient-to-r from-amber-500/10 via-[#14120B] to-amber-500/5 border border-amber-500/25 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                    <Power className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Fırsat Radarı Kapatıldı</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-mono font-semibold">Tarama Duraklatıldı</span>
+                    </h3>
+                    <p className="text-xs text-white/70 mt-0.5 max-w-2xl leading-relaxed">
+                      Kafa karışıklığını önlemek için otomatik arka plan taraması kapatıldı. İncelemek istediğinizde dilediğiniz an tek tıkla radarı yeniden etkinleştirebilirsiniz.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsRadarActive(true);
+                    showToast('⚡ Fırsat Radarı yeniden başlatıldı! Canlı tarama devrede.', 'system');
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center gap-2 transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Radarı Aç</span>
+                </button>
+              </div>
+            )}
+
+            {/* Radarı Yeniden Açma Öneri Uyarısı (Aralıklarla kullanıcıya sunulur) */}
+            {showRadarResumePrompt && !isRadarActive && (
+              <div className="bg-gradient-to-r from-red-600/15 via-[#1A0B0B] to-red-600/10 border border-red-500/40 rounded-3xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xl animate-in fade-in duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">📡</span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-white">
+                      Yeni sıcak indirimler tespit ediliyor olabilir!
+                    </h4>
+                    <p className="text-[11px] text-white/70">
+                      Fırsat Radarını tekrar açarak güncel fiyat düşüşlerini ve dip fırsatları anında yakalamak ister misiniz?
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  <button
+                    onClick={() => setShowRadarResumePrompt(false)}
+                    className="px-3 py-1.5 rounded-full text-xs text-white/60 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Daha Sonra
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsRadarActive(true);
+                      setShowRadarResumePrompt(false);
+                      showToast('⚡ Fırsat Radarı aktif edildi! En son indirimler taranıyor.', 'system');
+                    }}
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-full transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Radarı Aç</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Kaldırılan Ürünleri Geri Getirme Çubuğu */}
+            {dismissedDealIds.length > 0 && (
+              <div className="flex items-center justify-between bg-white/5 border border-white/10 px-4 py-2.5 rounded-2xl text-xs text-white/80">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-400" />
+                  <span><strong>{dismissedDealIds.length}</strong> fırsat önerisi isteğiniz üzerine akıştan kaldırıldı (gizlendi).</span>
+                </div>
+                <button
+                  onClick={handleRestoreDismissedDeals}
+                  className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 cursor-pointer transition-colors"
+                >
+                  Kaldırılanları Geri Getir
+                </button>
+              </div>
+            )}
 
             {/* Filter & Search Bar */}
             <div className="p-4 sm:p-5 rounded-3xl bg-[#0F0F0F] border border-white/10 space-y-4">
@@ -1289,10 +1541,47 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-white/50 font-mono">
-                  <span>{filteredDeals.length} Fırsat</span>
-                  <span>•</span>
-                  <span>{groupByPlatform ? '📂 Platform Gruplu' : '📋 Düz Liste'}</span>
+                {/* Sort Mode & Dynamic Rotation Selector */}
+                <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white/50 font-medium flex items-center gap-1">
+                      <ArrowUpDown className="w-3 h-3 text-white/40" />
+                      Sıralama:
+                    </span>
+                    <select
+                      value={sortMode}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        setSortMode(val);
+                        if (val === 'dynamic') {
+                          showToast('✨ Dinamik Döngü aktif: Fırsat önerileri periyodik olarak değişir.', 'system');
+                        }
+                      }}
+                      className="bg-black/60 border border-white/15 text-xs text-white/90 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-red-500 cursor-pointer font-mono"
+                    >
+                      <option value="dynamic">✨ Dinamik Döngü (Sürekli Değişsin)</option>
+                      <option value="score">🔥 En Yüksek Fırsat Skoru</option>
+                      <option value="newest">⚡ En Yeni Tespit Edilenler</option>
+                      <option value="discount">💰 En Yüksek İndirim Oranı</option>
+                    </select>
+
+                    {sortMode === 'dynamic' && (
+                      <button
+                        onClick={handleRotateDeals}
+                        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/15 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                        title="Fırsatları hemen döndürerek en üste farklı ürünler getir"
+                      >
+                        <RotateCw className="w-3 h-3 text-amber-400" />
+                        <span className="hidden sm:inline">Döndür</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-white/50 font-mono">
+                    <span>{filteredDeals.length} Fırsat</span>
+                    <span>•</span>
+                    <span>{groupByPlatform ? '📂 Platform Gruplu' : '📋 Düz Liste'}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1340,6 +1629,7 @@ export default function App() {
                 onSelectDeal={(d) => setSelectedDealForDetail(d)}
                 onSendTelegram={(d) => handleTriggerTelegram(d)}
                 onSelectPlatformFilter={(p) => setSelectedPlatform(p)}
+                onDismissDeal={handleDismissDeal}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1356,6 +1646,7 @@ export default function App() {
                     onShowToast={showToast}
                     onSelectDeal={(d) => setSelectedDealForDetail(d)}
                     onSendTelegram={(d) => handleTriggerTelegram(d)}
+                    onDismissDeal={handleDismissDeal}
                   />
                 ))}
               </div>
@@ -1408,6 +1699,7 @@ export default function App() {
         onToggleFavorite={handleToggleFavorite}
         onToggleSavedForLater={handleToggleSavedForLater}
         onToggleCompare={handleToggleCompare}
+        onDismissDeal={handleDismissDeal}
       />
 
       {/* Compare Floating Dock */}

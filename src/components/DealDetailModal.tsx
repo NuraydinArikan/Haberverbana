@@ -29,6 +29,7 @@ interface DealDetailModalProps {
   onToggleFavorite?: (dealId: string) => void;
   onToggleSavedForLater?: (dealId: string) => void;
   onToggleCompare?: (deal: DealItem) => void;
+  onDismissDeal?: (dealId: string) => void;
 }
 
 export const DealDetailModal: React.FC<DealDetailModalProps> = ({
@@ -40,7 +41,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
   isComparing,
   onToggleFavorite,
   onToggleSavedForLater,
-  onToggleCompare
+  onToggleCompare,
+  onDismissDeal
 }) => {
   const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
   const [aiReport, setAiReport] = useState<any>(null);
@@ -321,14 +323,30 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
 
         {/* Footer Actions */}
         <div className="p-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 bg-[#0A0A0A]">
-          <button
-            onClick={handleDeepAIAnalyze}
-            disabled={isAnalyzingWithAI}
-            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
-          >
-            <Sparkles className={`w-3.5 h-3.5 text-red-500 ${isAnalyzingWithAI ? 'animate-spin' : ''}`} />
-            <span>{isAnalyzingWithAI ? 'Derin Analiz Yapılıyor...' : 'Gemini ile Yeniden Analiz Et'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDeepAIAnalyze}
+              disabled={isAnalyzingWithAI}
+              className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/15 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+            >
+              <Sparkles className={`w-3.5 h-3.5 text-red-500 ${isAnalyzingWithAI ? 'animate-spin' : ''}`} />
+              <span>{isAnalyzingWithAI ? 'Derin Analiz Yapılıyor...' : 'Gemini ile Yeniden Analiz Et'}</span>
+            </button>
+
+            {onDismissDeal && (
+              <button
+                onClick={() => {
+                  onDismissDeal(deal.id);
+                  onClose();
+                }}
+                className="px-3.5 py-2.5 bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400 border border-white/15 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Bu fırsat önerisini akıştan kaldır"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Akıştan Kaldır</span>
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <button

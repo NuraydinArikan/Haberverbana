@@ -8,7 +8,8 @@ import {
   Zap, 
   Bell, 
   Contrast, 
-  Sliders
+  Sliders,
+  Power
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -26,6 +27,8 @@ interface NavbarProps {
   onToggleContrast: () => void;
   user: UserProfile;
   activeRulesCount: number;
+  isRadarActive?: boolean;
+  onToggleRadarActive?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -39,7 +42,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadNotificationsCount = 0,
   contrastMode,
   onToggleContrast,
-  activeRulesCount
+  activeRulesCount,
+  isRadarActive = true,
+  onToggleRadarActive
 }) => {
   // Format the platform status text dynamically
   const getPlatformDisplayText = () => {
@@ -60,27 +65,60 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="bg-[#050505] border-b border-white/5 py-1.5 px-4 text-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
-          {/* Left: Dynamic System Platform Status */}
+          {/* Left: Dynamic System Platform Status & Radar Toggle */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <div className="flex items-center gap-1.5 truncate font-mono text-[11px] text-white/80">
-              <span>Sistem: Canlı Radar Aktif •</span>
-              <span className={isCustomPlatforms ? "text-amber-400 font-bold" : "text-emerald-400 font-medium"}>
-                {getPlatformDisplayText()}
-              </span>
-              {onOpenPlatformSettings && (
-                <button
-                  onClick={onOpenPlatformSettings}
-                  className="text-[10px] text-red-400 hover:text-red-300 underline underline-offset-2 ml-1 cursor-pointer font-bold"
-                  title="Platform ve site tercihlerini ayarla"
-                >
-                  [Ayarlar]
-                </button>
-              )}
-            </div>
+            {isRadarActive ? (
+              <>
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <div className="flex items-center gap-1.5 truncate font-mono text-[11px] text-white/80">
+                  <span className="text-emerald-400 font-bold">Canlı Radar Açık •</span>
+                  <span className={isCustomPlatforms ? "text-amber-400 font-bold" : "text-emerald-400 font-medium"}>
+                    {getPlatformDisplayText()}
+                  </span>
+                  {onOpenPlatformSettings && (
+                    <button
+                      onClick={onOpenPlatformSettings}
+                      className="text-[10px] text-red-400 hover:text-red-300 underline underline-offset-2 ml-1 cursor-pointer font-bold"
+                      title="Platform ve site tercihlerini ayarla"
+                    >
+                      [Ayarlar]
+                    </button>
+                  )}
+                </div>
+                {onToggleRadarActive && (
+                  <button
+                    onClick={onToggleRadarActive}
+                    className="ml-2 px-2 py-0.5 rounded-md bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-300 text-[10px] font-mono transition-all border border-white/15 cursor-pointer shrink-0"
+                    title="Fırsat radarını tamamen kapat / duraklat"
+                  >
+                    Radarı Kapat
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <div className="flex items-center gap-1.5 truncate font-mono text-[11px] text-white/80">
+                  <span className="text-amber-400 font-bold">Fırsat Radarı Kapalı</span>
+                  <span className="text-white/40 hidden sm:inline">• Otomatik tarama duraklatıldı</span>
+                </div>
+                {onToggleRadarActive && (
+                  <button
+                    onClick={onToggleRadarActive}
+                    className="ml-2 px-2.5 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer shrink-0"
+                    title="Fırsat radarını yeniden başlat"
+                  >
+                    <Zap className="w-2.5 h-2.5" />
+                    <span>Radarı Aç</span>
+                  </button>
+                )}
+              </>
+            )}
           </div>
 
           {/* Right: Quick Settings & Counters */}
@@ -128,18 +166,27 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Logo with Smooth Continuous Rotating Radar Icon */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('feed')}>
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center text-white shadow-lg shadow-red-950/40 border border-red-500/30 shrink-0">
-              <Radar className="w-5 h-5 animate-radar-spin text-white" />
+            <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center text-white shadow-lg shadow-red-950/40 border border-red-500/30 shrink-0 ${
+              !isRadarActive ? 'opacity-80' : ''
+            }`}>
+              <Radar className={`w-5 h-5 text-white ${isRadarActive ? 'animate-radar-spin' : 'opacity-70'}`} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white">
                   haberverbana<span className="text-red-500">.app</span>
                 </span>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Canlı
-                </span>
+                {isRadarActive ? (
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Canlı
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Kapalı
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-white/50 font-medium italic tracking-wide">
                 "Sen Arama, O Haber Versin"

@@ -25,6 +25,7 @@ interface PlatformGroupedFeedProps {
   onToggleFavorite: (dealId: string) => void;
   onToggleSavedForLater: (dealId: string) => void;
   onToggleCompare?: (deal: DealItem) => void;
+  onDismissDeal?: (dealId: string) => void;
   onShowToast: (msg: string, type?: 'deal' | 'system', deal?: DealItem) => void;
   onSelectDeal: (deal: DealItem) => void;
   onSendTelegram: (deal: DealItem) => void;
@@ -124,6 +125,7 @@ export const PlatformGroupedFeed: React.FC<PlatformGroupedFeedProps> = ({
   onToggleFavorite,
   onToggleSavedForLater,
   onToggleCompare,
+  onDismissDeal,
   onShowToast,
   onSelectDeal,
   onSendTelegram,
@@ -324,6 +326,7 @@ export const PlatformGroupedFeed: React.FC<PlatformGroupedFeedProps> = ({
                         onToggleFavorite={onToggleFavorite}
                         onToggleSavedForLater={onToggleSavedForLater}
                         onToggleCompare={onToggleCompare}
+                        onDismissDeal={onDismissDeal}
                         onShowToast={onShowToast}
                         onSelectDeal={onSelectDeal}
                         onSendTelegram={onSendTelegram}
