@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="60%" stop-color="#991B1B" />
+      <stop offset="100%" stop-color="#450A0A" />
+    </linearGradient>
+    <linearGradient id="sweep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75" />
+      <stop offset="40%" stop-color="#F87171" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#DC2626" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background tile with subtle border -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)" stroke="#F87171" stroke-width="2" stroke-opacity="0.5" />
+
+  <!-- Outer & Inner Radar Rings -->
+  <circle cx="32" cy="32" r="23" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.7" stroke-dasharray="2 3" />
+  <circle cx="32" cy="32" r="15" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.7" />
+  <circle cx="32" cy="32" r="7.5" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.5" />
+
+  <!-- Radar Crosshairs -->
+  <line x1="32" y1="8" x2="32" y2="56" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="8" y1="32" x2="56" y2="32" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Radar Scanner Sweep -->
+  <path d="M 32 32 L 48 16 A 23 23 0 0 1 55 32 Z" fill="url(#sweep)" />
+  <line x1="32" y1="32" x2="48" y2="16" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
+
+  <!-- Center Core -->
+  <circle cx="32" cy="32" r="3.5" fill="#FFFFFF" />
+
+  <!-- Detected Deal Blip -->
+  <circle cx="43" cy="21" r="3.8" fill="#10B981" />
+  <circle cx="43" cy="21" r="5.5" stroke="#6EE7B7" stroke-width="1.2" stroke-opacity="0.8" />
+</svg>
