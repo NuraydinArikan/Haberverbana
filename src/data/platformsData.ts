@@ -51,21 +51,34 @@ export const TURKISH_PLATFORM_GROUPS: PlatformCategoryGroup[] = [
       { id: 'itopya', name: 'İtopya', category: 'Elektronik', description: 'Hazır Sistem & Oyuncu Ekipmanları', popular: true },
       { id: 'gaminggentr', name: 'Gaming.gen.tr', category: 'Elektronik', description: 'Oyuncu Sistemleri & Bileşenler' },
       { id: 'sinerji', name: 'Sinerji Bilgisayar', category: 'Elektronik', description: 'Masaüstü Sistem & OEM Donanım' },
-      { id: 'incehesap', name: 'İncehesap', category: 'Elektronik', description: 'Gaming Gecesi & İndirimli Sistemler' },
-      { id: 'tebilon', name: 'Tebilon', category: 'Elektronik', description: 'Oyuncu Donanımı & Hazır Sistem' }
+      { id: 'incehesap', name: 'İncehesap', category: 'Elektronik', description: 'Gaming Gecesi & İndirimli Sistemler' }
     ]
   },
   {
     category: 'Otomotiv & Araç Satışı',
     iconName: 'Car',
-    description: 'Ekspertizli kurumsal 2. el ve sıfır araçlar',
+    description: 'Açık ilan pazaryerleri, distribütör garantili ağlar, kurumsal showroomlar ve ihale platformları',
     platforms: [
-      { id: 'arabam', name: 'Arabam.com', category: 'Otomotiv', description: 'Türkiye’nin Araç Pazarı & Trink Sat', popular: true },
-      { id: 'vavacars', name: 'VavaCars', category: 'Otomotiv', description: 'Garantili Ekspertizli 2. El Araç', popular: true },
-      { id: 'borusannext', name: 'Borusan Next', category: 'Otomotiv', description: 'Premium 2. El Araçlar (BMW/MINI)' },
-      { id: 'dogusoto', name: 'Doğuş Oto', category: 'Otomotiv', description: 'Yetkili Satış/Servis & DOD Güvencesi' },
-      { id: 'otokoc', name: 'Otokoç İkinci El', category: 'Otomotiv', description: 'Koç Holding Güvenceli 2. El Araç' },
-      { id: 'carvak', name: 'Carvak', category: 'Otomotiv', description: 'Kavak Güvencesiyle Sertifikalı Araç' }
+      { id: 'sahibinden_vasita', name: 'Sahibinden.com Vasıta', category: 'Otomotiv', description: 'Türkiye’nin en yüksek ilan hacmine sahip açık vasıta pazaryeri', popular: true },
+      { id: 'arabam', name: 'Arabam.com', category: 'Otomotiv', description: 'Araç odaklı ilan platformu & Trink Sat anında nakit alım', popular: true },
+      { id: 'araba_com', name: 'Araba.com', category: 'Otomotiv', description: 'Geleneksel alternatif açık ilan listeleme sitesi' },
+      { id: 'otokoc', name: 'Otokoç 2. El (Koç Grubu)', category: 'Otomotiv', description: 'Ford, Fiat, Volvo temsilcisi kurumsal 2. el ağı', popular: true },
+      { id: 'dod', name: 'DOD (Doğuş Otomotiv)', category: 'Otomotiv', description: 'VW, Audi, SEAT, Škoda 101 nokta ekspertiz garantisi', popular: true },
+      { id: 'borusanotonext', name: 'Borusan Next', category: 'Otomotiv', description: 'BMW, MINI, Land Rover & Jaguar garantili premium 2. el', popular: true },
+      { id: 'renault2', name: 'Renault2 (Mais)', category: 'Otomotiv', description: 'Renault & Dacia yetkili satıcıları garantili 2. el ağı', popular: true },
+      { id: 'spoticar', name: 'Spoticar (Stellantis)', category: 'Otomotiv', description: 'Peugeot, Citroën, Opel, DS & Fiat ortak kurumsal ağı', popular: true },
+      { id: 'toyotagaranti', name: 'Toyota Garanti', category: 'Otomotiv', description: 'Toyota Plazalarında ekspertizli garantili 2. el araçlar' },
+      { id: 'volvoselekt', name: 'Volvo Selekt', category: 'Otomotiv', description: 'Fabrika standartlarında kontrol edilmiş 2. el Volvo modelleri' },
+      { id: 'neziroglu', name: 'Neziroğlu Otomotiv', category: 'Otomotiv', description: '50+ yıllık güvenceyle binek ve lüks çok markalı perakendeci', popular: true },
+      { id: 'koluman', name: 'Koluman 2. El', category: 'Otomotiv', description: 'Mercedes-Benz ana bayisi binek ve ticari 2. el satış kanalı' },
+      { id: 'mengerler', name: 'Mengerler 2. El', category: 'Otomotiv', description: 'Mercedes-Benz ve diğer premium markaların kurumsal 2. eli' },
+      { id: 'otoshops', name: 'Otoshops (Gülpar 2. El)', category: 'Otomotiv', description: 'Çok markalı kurumsal bayi ağı ve bağımsız showroomlar' },
+      { id: 'vavacars', name: 'VavaCars', category: 'Otomotiv', description: 'Ekspertizli doğrudan nakit alım ve garantili stok satışı', popular: true },
+      { id: 'otoplus', name: 'otoplus (letgo)', category: 'Otomotiv', description: 'letgo bünyesinde takas, doğrudan alım ve garantili satış', popular: true },
+      { id: 'ikinciyeni', name: 'ikinciyeni.com', category: 'Otomotiv', description: 'Çelik Motor / Anadolu Grubu yapay zeka fiyatlamalı satış', popular: true },
+      { id: 'carvak', name: 'Carvak (Kavak)', category: 'Otomotiv', description: 'Uluslararası standartta yenilenmiş ve sertifikalı 2. el' },
+      { id: 'borusan_ihale', name: 'Borusan Araç İhale', category: 'Otomotiv', description: 'Filo, banka ve şirket araçları açık artırma ihale kanalı' },
+      { id: 'ikinciyeni_ihale', name: 'İhale.ikinciyeni.com', category: 'Otomotiv', description: 'Bireysel ve kurumsal teklif verilebilen online açık artırma' }
     ]
   },
   {
@@ -170,8 +183,7 @@ export const TURKISH_PLATFORM_GROUPS: PlatformCategoryGroup[] = [
       { id: 'petlebi', name: 'Petlebi', category: 'Petshop', description: 'Orijinal Mama Garantisi & Hızlı Kargo', popular: true },
       { id: 'kolaymama', name: 'Kolay Mama', category: 'Petshop', description: 'Taze Mama & Evcil Hayvan İhtiyaçları' },
       { id: 'iyimama', name: 'İyimama', category: 'Petshop', description: 'Kedi/Köpek Maması & Konserveler' },
-      { id: 'petihtiyac', name: 'Petihtiyac', category: 'Petshop', description: 'Evcil Hayvan Aksesuarları & Mama' },
-      { id: 'juenpet', name: 'Juen Pet Market', category: 'Petshop', description: 'Akvaryum, Kuş & Pet Malzemeleri' }
+      { id: 'petihtiyac', name: 'Petihtiyac', category: 'Petshop', description: 'Evcil Hayvan Aksesuarları & Mama' }
     ]
   }
 ];

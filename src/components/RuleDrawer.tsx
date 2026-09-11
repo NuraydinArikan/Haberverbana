@@ -19,14 +19,18 @@ import {
   CheckSquare,
   Square,
   Compass,
-  Cpu
+  Cpu,
+  Car
 } from 'lucide-react';
 import { DealCategory, RadarRule, Platform } from '../types';
 import { 
   buildPlatformSearchUrl, 
   getAiRecommendedPlatforms, 
   ALL_AVAILABLE_PLATFORMS,
-  getPlatformBadgeStyle 
+  CATEGORY_PLATFORMS_MAP,
+  AUTOMOTIVE_SUBGROUPS,
+  getPlatformBadgeStyle,
+  PlatformItemSpec
 } from '../utils/searchUrlBuilder';
 
 interface RuleDrawerProps {
@@ -46,7 +50,7 @@ const CATEGORIES: DealCategory[] = [
 
 const PRESET_SUGGESTIONS = [
   { name: 'MacBook Air M3 16GB', cat: 'Elektronik & Bilgisayar' as DealCategory, max: 50000, ai: 'Satıcısı resmi Amazon olan ve 50.000 TL altındaki fırsatları bildir.' },
-  { name: 'Tesla Model Y RWD', cat: 'Otomobil & Vasıta' as DealCategory, max: 2400000, ai: 'Hatasız, boyasız, PPF kaplamalı veya kış lastikli olanları yüksek puanla değerlendir.' },
+  { name: 'Tesla Model Y RWD', cat: 'Otomobil & Vasıta' as DealCategory, max: 2400000, ai: 'Hatasız, boyasız, PPF kaplamalı veya kış lastikli olanları; Borusan Oto Next, Koç Oto İkinci El, Doğuş Oto, Neziroğlu, Sahibinden ve Arabam genelinde yüksek puanla değerlendir.' },
   { name: 'Sony WH-1000XM5', cat: 'Elektronik & Bilgisayar' as DealCategory, max: 12500, ai: 'Kapalı kutu distribütör garantili ve piyasa ortalamasının altında olanlar.' },
   { name: 'Dyson V15 Detect', cat: 'Ev & Yaşam' as DealCategory, max: 26000, ai: 'Resmi Dyson satıcılı ve 26.000 TL altındaki fırsatlar.' }
 ];
@@ -67,6 +71,7 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
   const [platformMode, setPlatformMode] = useState<'auto_ai' | 'manual'>('auto_ai');
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['Amazon', 'Hepsiburada', 'Trendyol', 'Sahibinden']);
   const [autoExpandPlatforms, setAutoExpandPlatforms] = useState<boolean>(true);
+  const [showOtherPlatforms, setShowOtherPlatforms] = useState<boolean>(false);
 
   const [aiInstructions, setAiInstructions] = useState('Satıcısı resmi satıcı olan ve 50 bin altındaki fırsatları haber ver.');
   const [positiveKeywordsInput, setPositiveKeywordsInput] = useState('');
@@ -123,6 +128,10 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
     setCategory(preset.cat);
     setMaxPrice(preset.max);
     setAiInstructions(preset.ai);
+    const catSpecs = CATEGORY_PLATFORMS_MAP[preset.cat];
+    if (catSpecs && catSpecs.length > 0) {
+      setSelectedPlatforms(catSpecs.map(s => s.name));
+    }
   };
 
   const handleAddPositiveKeyword = () => {
@@ -284,7 +293,14 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as DealCategory)}
+                  onChange={(e) => {
+                    const newCat = e.target.value as DealCategory;
+                    setCategory(newCat);
+                    const catSpecs = CATEGORY_PLATFORMS_MAP[newCat];
+                    if (catSpecs && catSpecs.length > 0) {
+                      setSelectedPlatforms(catSpecs.map(s => s.name));
+                    }
+                  }}
                   className="w-full px-3 py-2 bg-black/60 border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
                 >
                   {CATEGORIES.map((c) => (
@@ -396,34 +412,240 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
             ) : (
               /* TAB 2: MANUAL USER FREEDOM VIEW */
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-white/60">
-                  <span>Taramak istediğiniz mecraları serbestçe işaretleyin:</span>
-                  <span className="font-mono text-white/40">{selectedPlatforms.length} mecra seçili</span>
+                {/* Category-targeted header & Quick Action Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">
+                      {category === 'Otomobil & Vasıta' ? '🚗 Otomotiv Portalları (5 Kategori & 20 Kurumsal Mecra):' : `${category} Portalları:`}
+                    </span>
+                    <span className="font-mono text-white/50 text-[11px] bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                      {selectedPlatforms.length} mecra seçili
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const catSpecs = CATEGORY_PLATFORMS_MAP[category] || [];
+                        const allCatNames = catSpecs.map(s => s.name);
+                        setSelectedPlatforms(allCatNames);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium transition-colors"
+                    >
+                      Tümünü Seç
+                    </button>
+                    {category === 'Otomobil & Vasıta' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const distPlatforms = AUTOMOTIVE_SUBGROUPS
+                              .filter(g => g.groupId === 'distributors_certified' || g.groupId === 'multi_brand_showrooms')
+                              .flatMap(g => g.platforms.map(p => p.name));
+                            setSelectedPlatforms(distPlatforms);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-sky-400" />
+                          Sertifikalı & Showroomlar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const directPlatforms = AUTOMOTIVE_SUBGROUPS
+                              .filter(g => g.groupId === 'instant_cash_retail' || g.groupId === 'online_auctions')
+                              .flatMap(g => g.platforms.map(p => p.name));
+                            setSelectedPlatforms(directPlatforms);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                        >
+                          <Zap className="w-3 h-3 text-amber-400" />
+                          Stoktan Satış & İhaleler
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const first = CATEGORY_PLATFORMS_MAP[category]?.[0]?.name || 'Sahibinden';
+                        setSelectedPlatforms([first]);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white text-[11px] transition-colors"
+                    >
+                      Sıfırla
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {ALL_AVAILABLE_PLATFORMS.map((p) => {
-                    const isSelected = selectedPlatforms.includes(p);
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => togglePlatform(p)}
-                        className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all ${
-                          isSelected
-                            ? 'bg-red-600/15 border-red-500 text-white shadow-sm'
-                            : 'bg-black/30 border-white/10 text-white/50 hover:text-white'
-                        }`}
-                      >
-                        <span>{p}</span>
-                        {isSelected ? (
-                          <CheckSquare className="w-4 h-4 text-red-400 shrink-0" />
-                        ) : (
-                          <Square className="w-4 h-4 text-white/30 shrink-0" />
-                        )}
-                      </button>
-                    );
-                  })}
+                {/* Platform Rendering: Grouped by 5 Taxonomies for Automotive, or Single Grid for others */}
+                {category === 'Otomobil & Vasıta' ? (
+                  <div className="space-y-4">
+                    {AUTOMOTIVE_SUBGROUPS.map((subgroup) => {
+                      const groupPlatformNames = subgroup.platforms.map(p => p.name);
+                      const allGroupSelected = groupPlatformNames.every(name => selectedPlatforms.includes(name));
+                      const someGroupSelected = groupPlatformNames.some(name => selectedPlatforms.includes(name));
+
+                      const toggleGroup = () => {
+                        if (allGroupSelected) {
+                          setSelectedPlatforms(prev => prev.filter(p => !groupPlatformNames.includes(p)));
+                        } else {
+                          setSelectedPlatforms(prev => Array.from(new Set([...prev, ...groupPlatformNames])));
+                        }
+                      };
+
+                      return (
+                        <div key={subgroup.groupId} className="rounded-xl border border-white/10 bg-white/[0.02] p-3 space-y-2.5">
+                          {/* Subgroup Header */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 border-b border-white/5">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-xs text-white">{subgroup.groupTitle}</span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/10">
+                                  {subgroup.badgeText}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-white/40 mt-0.5">{subgroup.groupDescription}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={toggleGroup}
+                              className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors shrink-0 self-start sm:self-auto"
+                            >
+                              {allGroupSelected ? 'Tümünü Kaldır' : 'Grubu Seç'}
+                            </button>
+                          </div>
+
+                          {/* Cards Grid in Subgroup */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {subgroup.platforms.map((item) => {
+                              const isSelected = selectedPlatforms.includes(item.name);
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() => togglePlatform(item.name)}
+                                  className={`p-2.5 rounded-xl border text-left flex items-start justify-between transition-all ${
+                                    isSelected
+                                      ? 'bg-red-600/15 border-red-500 text-white shadow-sm ring-1 ring-red-500/30'
+                                      : 'bg-black/30 border-white/10 text-white/60 hover:text-white hover:bg-white/5'
+                                  }`}
+                                >
+                                  <div className="space-y-0.5 pr-2">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-semibold text-xs text-white">{item.displayName || item.name}</span>
+                                      {item.kurumsal && (
+                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-mono font-medium flex items-center gap-0.5">
+                                          <ShieldCheck className="w-2.5 h-2.5" />
+                                          Kurumsal
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[10.5px] text-white/50 leading-tight">
+                                      {item.badge}
+                                    </p>
+                                  </div>
+                                  <div className="mt-0.5 shrink-0">
+                                    {isSelected ? (
+                                      <CheckSquare className="w-4 h-4 text-red-400" />
+                                    ) : (
+                                      <Square className="w-4 h-4 text-white/30" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Standard Grid for non-automotive categories */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {(CATEGORY_PLATFORMS_MAP[category] || []).map((item) => {
+                      const isSelected = selectedPlatforms.includes(item.name);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => togglePlatform(item.name)}
+                          className={`p-3 rounded-xl border text-left flex items-start justify-between transition-all ${
+                            isSelected
+                              ? 'bg-red-600/15 border-red-500 text-white shadow-sm ring-1 ring-red-500/30'
+                              : 'bg-black/30 border-white/10 text-white/60 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="space-y-1 pr-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-xs text-white">{item.displayName || item.name}</span>
+                              {item.kurumsal && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-mono font-medium flex items-center gap-0.5">
+                                  <ShieldCheck className="w-2.5 h-2.5" />
+                                  Kurumsal
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-white/50 leading-tight">
+                              {item.badge}
+                            </p>
+                          </div>
+                          <div className="mt-0.5 shrink-0">
+                            {isSelected ? (
+                              <CheckSquare className="w-4 h-4 text-red-400" />
+                            ) : (
+                              <Square className="w-4 h-4 text-white/30" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Collapsible General/Other Platforms */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowOtherPlatforms(!showOtherPlatforms)}
+                    className="text-xs text-white/60 hover:text-white flex items-center gap-1.5 transition-colors"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-white/40" />
+                    <span>
+                      {showOtherPlatforms 
+                        ? 'Diğer genel e-ticaret sitelerini gizle' 
+                        : '+ Diğer genel pazaryerlerini de ekle (Amazon, Hepsiburada, Trendyol vb.)'}
+                    </span>
+                  </button>
+
+                  {showOtherPlatforms && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 pt-2 border-t border-white/10 animate-in fade-in duration-200">
+                      {ALL_AVAILABLE_PLATFORMS
+                        .filter(p => !(CATEGORY_PLATFORMS_MAP[category] || []).some(catP => catP.name === p))
+                        .map((p) => {
+                          const isSelected = selectedPlatforms.includes(p);
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => togglePlatform(p)}
+                              className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-between transition-all ${
+                                isSelected
+                                  ? 'bg-red-600/15 border-red-500 text-white'
+                                  : 'bg-black/20 border-white/10 text-white/50 hover:text-white'
+                              }`}
+                            >
+                              <span>{p}</span>
+                              {isSelected ? (
+                                <CheckSquare className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                              ) : (
+                                <Square className="w-3.5 h-3.5 text-white/30 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Hybrid Option: Auto-expand with AI */}

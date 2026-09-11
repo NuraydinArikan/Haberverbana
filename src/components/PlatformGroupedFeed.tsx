@@ -82,6 +82,174 @@ const PLATFORM_METAS: Record<string, PlatformMeta> = {
     tagline: 'Ekspertizli ve Hatasız Otomobil Fırsatları',
     domainUrl: 'https://www.arabam.com'
   },
+  'Borusan Oto Next': {
+    name: 'Borusan Next',
+    badgeClass: 'bg-sky-500/15 border-sky-500/40 text-sky-300',
+    borderAccent: 'border-sky-500/30',
+    icon: <Car className="w-4 h-4 text-sky-400" />,
+    tagline: 'BMW, MINI, Land Rover & Premium 2. El Araçlar',
+    domainUrl: 'https://www.borusanotonext.com'
+  },
+  'Borusan Next': {
+    name: 'Borusan Next',
+    badgeClass: 'bg-sky-500/15 border-sky-500/40 text-sky-300',
+    borderAccent: 'border-sky-500/30',
+    icon: <Car className="w-4 h-4 text-sky-400" />,
+    tagline: 'BMW, MINI, Land Rover Sertifikalı 2. El',
+    domainUrl: 'https://www.borusanotonext.com'
+  },
+  'Koç Oto İkinci El': {
+    name: 'Otokoç 2. El (Koç Grubu)',
+    badgeClass: 'bg-rose-500/15 border-rose-500/40 text-rose-300',
+    borderAccent: 'border-rose-500/30',
+    icon: <Car className="w-4 h-4 text-rose-400" />,
+    tagline: 'Koç Holding Güvenceli Ekspertizli Araçlar',
+    domainUrl: 'https://www.otokocikinciel.com'
+  },
+  'Otokoç İkinci El': {
+    name: 'Otokoç 2. El (Koç Grubu)',
+    badgeClass: 'bg-rose-500/15 border-rose-500/40 text-rose-300',
+    borderAccent: 'border-rose-500/30',
+    icon: <Car className="w-4 h-4 text-rose-400" />,
+    tagline: 'Koç Holding Güvenceli Ekspertizli Araçlar',
+    domainUrl: 'https://www.otokocikinciel.com'
+  },
+  'Araba.com': {
+    name: 'Araba.com',
+    badgeClass: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+    borderAccent: 'border-amber-500/30',
+    icon: <Car className="w-4 h-4 text-amber-400" />,
+    tagline: 'Geleneksel Açık Vasıta İlan Pazarı',
+    domainUrl: 'https://www.araba.com'
+  },
+  'Doğuş Oto': {
+    name: 'Doğuş Oto',
+    badgeClass: 'bg-blue-500/15 border-blue-500/40 text-blue-300',
+    borderAccent: 'border-blue-500/30',
+    icon: <Car className="w-4 h-4 text-blue-400" />,
+    tagline: 'Volkswagen Grubu Yetkili Satış & Servis',
+    domainUrl: 'https://dogusoto.com.tr'
+  },
+  Neziroğlu: {
+    name: 'Neziroğlu Otomotiv',
+    badgeClass: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+    borderAccent: 'border-emerald-500/30',
+    icon: <Car className="w-4 h-4 text-emerald-400" />,
+    tagline: '50+ Yıllık Güvence & Ekspertizli İkinci El',
+    domainUrl: 'https://www.neziroglu.com.tr'
+  },
+  DOD: {
+    name: 'DOD (Doğuş Otomotiv)',
+    badgeClass: 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300',
+    borderAccent: 'border-cyan-500/30',
+    icon: <Car className="w-4 h-4 text-cyan-400" />,
+    tagline: 'Doğuş Otomotiv 101 Nokta Ekspertiz Garantisi',
+    domainUrl: 'https://www.dod.com.tr'
+  },
+  Renault2: {
+    name: 'Renault2 (Mais)',
+    badgeClass: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+    borderAccent: 'border-amber-500/30',
+    icon: <Car className="w-4 h-4 text-amber-400" />,
+    tagline: 'Renault & Dacia Yetkili Bayi Garantili Araçlar',
+    domainUrl: 'https://www.renault2.com.tr'
+  },
+  Spoticar: {
+    name: 'Spoticar (Stellantis)',
+    badgeClass: 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300',
+    borderAccent: 'border-indigo-500/30',
+    icon: <Car className="w-4 h-4 text-indigo-400" />,
+    tagline: 'Peugeot, Citroën, Opel, DS & Fiat Ortak Ağı',
+    domainUrl: 'https://www.spoticar.com.tr'
+  },
+  'Toyota Garanti': {
+    name: 'Toyota Garanti',
+    badgeClass: 'bg-red-500/15 border-red-500/40 text-red-300',
+    borderAccent: 'border-red-500/30',
+    icon: <Car className="w-4 h-4 text-red-400" />,
+    tagline: 'Toyota Plazalarında Ekspertizli Garantili 2. El',
+    domainUrl: 'https://www.toyota.com.tr/ikinci-el'
+  },
+  'Volvo Selekt': {
+    name: 'Volvo Selekt',
+    badgeClass: 'bg-sky-500/15 border-sky-500/40 text-sky-300',
+    borderAccent: 'border-sky-500/30',
+    icon: <Car className="w-4 h-4 text-sky-400" />,
+    tagline: 'Fabrika Standartlarında Kontrollü 2. El Volvo',
+    domainUrl: 'https://www.volvocars.com/tr/l/volvo-selekt'
+  },
+  'Koluman 2. El': {
+    name: 'Koluman 2. El',
+    badgeClass: 'bg-slate-400/15 border-slate-400/40 text-slate-200',
+    borderAccent: 'border-slate-400/30',
+    icon: <Car className="w-4 h-4 text-slate-300" />,
+    tagline: 'Mercedes-Benz Ana Bayi Güvencesiyle 2. El',
+    domainUrl: 'https://www.koluman2el.com'
+  },
+  'Mengerler 2. El': {
+    name: 'Mengerler 2. El',
+    badgeClass: 'bg-teal-500/15 border-teal-500/40 text-teal-300',
+    borderAccent: 'border-teal-500/30',
+    icon: <Car className="w-4 h-4 text-teal-400" />,
+    tagline: 'Mercedes & Premium Araç Kurumsal Operasyonu',
+    domainUrl: 'https://www.mengerler.com'
+  },
+  Otoshops: {
+    name: 'Otoshops (Gülpar 2. El)',
+    badgeClass: 'bg-violet-500/15 border-violet-500/40 text-violet-300',
+    borderAccent: 'border-violet-500/30',
+    icon: <Car className="w-4 h-4 text-violet-400" />,
+    tagline: 'Çok Markalı Kurumsal Bayi Ağı & Showroomlar',
+    domainUrl: 'https://www.otoshops.com'
+  },
+  VavaCars: {
+    name: 'VavaCars',
+    badgeClass: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+    borderAccent: 'border-amber-500/30',
+    icon: <Car className="w-4 h-4 text-amber-400" />,
+    tagline: 'Garantili Ekspertizli Online 2. El Araç Satışı',
+    domainUrl: 'https://tr.vavacars.com'
+  },
+  otoplus: {
+    name: 'otoplus (letgo)',
+    badgeClass: 'bg-orange-500/15 border-orange-500/40 text-orange-300',
+    borderAccent: 'border-orange-500/30',
+    icon: <Car className="w-4 h-4 text-orange-400" />,
+    tagline: 'Takas, Doğrudan Alım ve Garantili Satış',
+    domainUrl: 'https://www.otoplus.com'
+  },
+  'ikinciyeni.com': {
+    name: 'ikinciyeni.com (Çelik Motor / Anadolu)',
+    badgeClass: 'bg-lime-500/15 border-lime-500/40 text-lime-300',
+    borderAccent: 'border-lime-500/30',
+    icon: <Car className="w-4 h-4 text-lime-400" />,
+    tagline: 'Yapay Zeka Fiyatlamalı Doğrudan Satış & İhale',
+    domainUrl: 'https://www.ikinciyeni.com'
+  },
+  Carvak: {
+    name: 'Carvak (Kavak)',
+    badgeClass: 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300',
+    borderAccent: 'border-indigo-500/30',
+    icon: <Car className="w-4 h-4 text-indigo-400" />,
+    tagline: 'Yenilenmiş Sertifikalı Araç Satışı',
+    domainUrl: 'https://www.carvak.com'
+  },
+  'Borusan Araç İhale': {
+    name: 'Borusan Araç İhale',
+    badgeClass: 'bg-blue-500/15 border-blue-500/40 text-blue-300',
+    borderAccent: 'border-blue-500/30',
+    icon: <Car className="w-4 h-4 text-blue-400" />,
+    tagline: 'Filo, Banka ve Şirket Araçları Açık Artırması',
+    domainUrl: 'https://www.borusanaraciharesi.com'
+  },
+  'İhale.ikinciyeni.com': {
+    name: 'İhale.ikinciyeni.com',
+    badgeClass: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+    borderAccent: 'border-emerald-500/30',
+    icon: <Car className="w-4 h-4 text-emerald-400" />,
+    tagline: 'Bireysel ve Kurumsal Teklifli Açık Artırma',
+    domainUrl: 'https://www.ikinciyeni.com/ihale'
+  },
   N11: {
     name: 'N11',
     badgeClass: 'bg-purple-500/15 border-purple-500/40 text-purple-300',
