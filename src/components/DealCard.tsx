@@ -130,7 +130,22 @@ export const DealCard: React.FC<DealCardProps> = ({
   // 1. Doğrudan Platforma Git
   const handleGoToPlatform = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(deal.productUrl, '_blank', 'noopener,noreferrer');
+    if (!deal.productUrl) {
+      onShowToast?.('Bu ürün için bağlantı bulunamadı.');
+      return;
+    }
+    try {
+      const newWin = window.open(deal.productUrl, '_blank', 'noopener,noreferrer');
+      if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+        navigator.clipboard.writeText(deal.productUrl).catch(() => {});
+        onShowToast?.(`🔗 Açılır pencere engellenmiş olabilir. "${deal.platform}" bağlantısı kopyalandı, yeni sekmede açabilirsiniz.`);
+      } else {
+        onShowToast?.(`↗️ ${deal.platform} sayfasına yönlendiriliyorsunuz...`);
+      }
+    } catch {
+      navigator.clipboard.writeText(deal.productUrl).catch(() => {});
+      onShowToast?.(`🔗 "${deal.platform}" ürün bağlantısı panoya kopyalandı.`);
+    }
     setIsContextMenuOpen(false);
   };
 

@@ -351,17 +351,45 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => onSendTelegram(deal)}
-              className="px-4 py-2.5 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="px-3.5 sm:px-4 py-2.5 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Telegram Bildirimi Gönder"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Telegram'a İlet</span>
+              <span className="hidden sm:inline">Telegram'a İlet</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(deal.productUrl);
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                } catch {
+                  // Fallback
+                }
+              }}
+              className="px-3 sm:px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Ürün bağlantısını panoya kopyala"
+            >
+              {copiedLink ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold">Kopyalandı</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-white/70" />
+                  <span>Linki Kopyala</span>
+                </>
+              )}
             </button>
 
             <a
               href={deal.productUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-lg shadow-red-950/40 active:scale-95"
+              className="px-4 sm:px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-lg shadow-red-950/40 active:scale-95 cursor-pointer"
+              title="Kaynak sitede canlı ilanı / aramayı yeni sekmede aç"
             >
               <span>Yeni Sekmede Aç & İncele</span>
               <ExternalLink className="w-3.5 h-3.5" />

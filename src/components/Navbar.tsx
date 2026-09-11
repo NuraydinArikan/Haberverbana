@@ -9,7 +9,9 @@ import {
   Bell, 
   Contrast, 
   Sliders,
-  Power
+  Power,
+  BookOpen,
+  HelpCircle
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -19,6 +21,8 @@ interface NavbarProps {
   onOpenRuleDrawer: () => void;
   onOpenTelegramModal: () => void;
   onOpenOnboarding?: () => void;
+  onOpenGuide?: () => void;
+  onOpenFaq?: () => void;
   onOpenNotificationCenter: () => void;
   onOpenPlatformSettings?: () => void;
   selectedPlatforms?: string[];
@@ -36,6 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenRuleDrawer,
   onOpenTelegramModal,
+  onOpenGuide,
+  onOpenFaq,
   onOpenNotificationCenter,
   onOpenPlatformSettings,
   selectedPlatforms = [],
@@ -49,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Format the platform status text dynamically
   const getPlatformDisplayText = () => {
     if (!selectedPlatforms || selectedPlatforms.length === 0 || (selectedPlatforms.length === 1 && selectedPlatforms[0] === 'all')) {
-      return 'Tüm İlgili Platformlar (Kategoriye Göre 65+ Mecra)';
+      return 'Tüm İlgili Platformlar (Kategoriye Göre 75 Mecra)';
     }
     if (selectedPlatforms.length <= 3) {
       return selectedPlatforms.join(' • ');
@@ -123,6 +129,32 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right: Quick Settings & Counters */}
           <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-white/60 font-mono shrink-0">
+            {/* Kılavuz & SSS & Destek */}
+            {onOpenGuide && (
+              <button
+                onClick={onOpenGuide}
+                className="hover:text-white text-white/80 flex items-center gap-1 transition-colors cursor-pointer group"
+                title="Kullanım Kılavuzu & Başlangıç Rehberi"
+              >
+                <BookOpen className="w-3 h-3 text-red-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden sm:inline underline underline-offset-2">Kılavuz</span>
+              </button>
+            )}
+            {onOpenFaq && (
+              <>
+                <span className="text-white/20 hidden sm:inline">•</span>
+                <button
+                  onClick={onOpenFaq}
+                  className="hover:text-white text-white/80 flex items-center gap-1 transition-colors cursor-pointer group"
+                  title="Sık Sorulan Sorular (SSS) ve İlan Linkleri Rehberi"
+                >
+                  <HelpCircle className="w-3 h-3 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <span className="underline underline-offset-2">SSS</span>
+                </button>
+              </>
+            )}
+            <span className="text-white/20">•</span>
+
             {/* Contrast Mode */}
             <button
               onClick={onToggleContrast}

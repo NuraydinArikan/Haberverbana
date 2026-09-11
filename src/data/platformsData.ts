@@ -89,7 +89,8 @@ export const TURKISH_PLATFORM_GROUPS: PlatformCategoryGroup[] = [
       { id: 'vivense', name: 'Vivense', category: 'Ev & Yapı Market', description: 'İç Mimar Destekli Mobilya' },
       { id: 'evidea', name: 'Evidea', category: 'Ev & Yapı Market', description: 'Ev Tekstili, Mutfak & Züccaciye' },
       { id: 'enzahome', name: 'Enza Home', category: 'Ev & Yapı Market', description: 'Modern Mobilya & Yatak' },
-      { id: 'tekzen', name: 'Tekzen', category: 'Ev & Yapı Market', description: 'Yapı Market & Bahçe' }
+      { id: 'tekzen', name: 'Tekzen', category: 'Ev & Yapı Market', description: 'Yapı Market & Bahçe' },
+      { id: 'karaca', name: 'Karaca', category: 'Ev & Yapı Market', description: 'Mutfak, Sofra & Küçük Ev Aletleri', popular: true }
     ]
   },
   {
@@ -121,6 +122,7 @@ export const TURKISH_PLATFORM_GROUPS: PlatformCategoryGroup[] = [
       { id: 'sneaksup', name: 'Sneaks Up', category: 'Giyim & Moda', description: 'Sneaker & Sokak Modası' },
       { id: 'barcin', name: 'Barçın Spor', category: 'Giyim & Moda', description: 'Orijinal Spor Ayakkabı & Ekipman' },
       { id: 'dalkilic', name: 'Dalkılıç Spor', category: 'Giyim & Moda', description: 'Outdoor & Spor Malzemeleri' },
+      { id: 'decathlon', name: 'Decathlon', category: 'Giyim & Moda', description: 'Spor Ekipmanları & Outdoor Giyim', popular: true },
       { id: 'morhipo', name: 'Morhipo', category: 'Giyim & Moda', description: 'Moda & Yaşam Fırsatları' }
     ]
   },
@@ -134,7 +136,8 @@ export const TURKISH_PLATFORM_GROUPS: PlatformCategoryGroup[] = [
       { id: 'bkmkitap', name: 'BKM Kitap', category: 'Kitap & Hobi', description: 'Uygun Fiyatlı Kitap & Kırtasiye' },
       { id: 'idefix', name: 'İdefix', category: 'Kitap & Hobi', description: 'Kültür & Sanat Pazaryeri' },
       { id: 'nezih', name: 'Nezih', category: 'Kitap & Hobi', description: 'Kırtasiye, Kitap & Oyuncak' },
-      { id: 'pandora', name: 'Pandora', category: 'Kitap & Hobi', description: 'Akademik & Yabancı Dilde Kitaplar' }
+      { id: 'pandora', name: 'Pandora', category: 'Kitap & Hobi', description: 'Akademik & Yabancı Dilde Kitaplar' },
+      { id: 'avansas', name: 'Avansas', category: 'Kitap & Hobi', description: 'İşyeri, Ofis & Kırtasiye Tedariği' }
     ]
   },
   {

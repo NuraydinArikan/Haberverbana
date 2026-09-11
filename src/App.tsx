@@ -30,7 +30,11 @@ import {
   Scale,
   Power,
   RotateCw,
-  ArrowUpDown
+  ArrowUpDown,
+  BookOpen,
+  HelpCircle,
+  Mail,
+  Copy
 } from 'lucide-react';
 import { 
   DealCategory, 
@@ -54,8 +58,10 @@ import { TelegramSimulatorModal } from './components/TelegramSimulatorModal';
 import { PricingModal } from './components/PricingModal';
 import { RulesManager } from './components/RulesManager';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
-import { DomainAndScraperModal } from './components/DomainAndScraperModal';
 import { PlatformSettingsModal } from './components/PlatformSettingsModal';
+import { UserGuideModal } from './components/UserGuideModal';
+import { KvkkModal } from './components/KvkkModal';
+import { FaqModal } from './components/FaqModal';
 import { useAnimatedFavicon } from './utils/useAnimatedFavicon';
 import { getStoredTelegramConfig, sendRealTelegramAlert } from './services/telegramService';
 import { buildSearchUrl, getAiRecommendedPlatforms } from './utils/searchUrlBuilder';
@@ -231,9 +237,23 @@ export default function App() {
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
-  const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+  const [isUserGuideOpen, setIsUserGuideOpen] = useState(false);
+  const [isKvkkOpen, setIsKvkkOpen] = useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [copiedFooterEmail, setCopiedFooterEmail] = useState(false);
+
+  // Auto-open User Guide for first-time visitors
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem('haberverbana_has_seen_guide');
+    if (!hasSeenGuide) {
+      const timer = setTimeout(() => {
+        setIsUserGuideOpen(true);
+      }, 750);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Compare Deals State (Up to 3 deals, persisted in localStorage)
   const [selectedDealIdsForComparison, setSelectedDealIdsForComparison] = useState<string[]>(() => {
@@ -1066,6 +1086,8 @@ export default function App() {
           setIsTelegramModalOpen(true);
         }}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onOpenGuide={() => setIsUserGuideOpen(true)}
+        onOpenFaq={() => setIsFaqOpen(true)}
         onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
         onOpenPlatformSettings={() => setIsPlatformSettingsOpen(true)}
         selectedPlatforms={selectedPlatforms}
@@ -1781,54 +1803,193 @@ export default function App() {
         onSaveSelectedPlatforms={(platforms) => {
           setSelectedPlatforms(platforms);
           if (platforms.length === 0 || (platforms.length === 1 && platforms[0] === 'all')) {
-            showToast('🌐 Radar ayarları güncellendi: Tüm ilgili platformlar (65+ mağaza) otomatik taranıyor.');
+            showToast('🌐 Radar ayarları güncellendi: Tüm ilgili platformlar (75 mağaza) otomatik taranıyor.');
           } else {
             showToast(`🎯 Radar ayarları güncellendi: ${platforms.length} özel platform hedeflendi.`);
           }
         }}
       />
 
-      {/* Domain & Python Playwright Scraper Integration Modal */}
-      <DomainAndScraperModal
-        isOpen={isIntegrationModalOpen}
-        onClose={() => setIsIntegrationModalOpen(false)}
-        onNewDealIngested={(newDeal) => {
-          setDeals(prev => [newDeal, ...prev]);
-          showToast('⚡ Python Botu yeni bir canlı fırsat aktardı!', 'deal', newDeal);
+      {/* Kullanım Kılavuzu & Başlangıç Pop-up'ı */}
+      <UserGuideModal
+        isOpen={isUserGuideOpen}
+        onClose={() => setIsUserGuideOpen(false)}
+        onOpenRuleDrawer={() => {
+          setRuleDrawerInitialValues(null);
+          setIsRuleDrawerOpen(true);
         }}
-        onShowToast={(msg) => showToast(msg, 'system')}
+        onOpenPlatformSettings={() => setIsPlatformSettingsOpen(true)}
+        onOpenTelegramModal={() => setIsTelegramModalOpen(true)}
+      />
+
+      {/* KVKK & Gizlilik Aydınlatma Metni Modalı */}
+      <KvkkModal
+        isOpen={isKvkkOpen}
+        onClose={() => setIsKvkkOpen(false)}
+        onClearLocalData={() => {
+          localStorage.clear();
+          setDeals(INITIAL_DEALS);
+          setRules(INITIAL_RULES);
+          showToast('Tüm yerel veriler ve kurallar başarıyla sıfırlandı.', 'system');
+        }}
+      />
+
+      {/* Sık Sorulan Sorular (SSS) Modalı */}
+      <FaqModal
+        isOpen={isFaqOpen}
+        onClose={() => setIsFaqOpen(false)}
+        onOpenRuleDrawer={() => {
+          setRuleDrawerInitialValues(null);
+          setIsRuleDrawerOpen(true);
+        }}
+        onOpenTelegramModal={() => setIsTelegramModalOpen(true)}
+        onOpenGuide={() => setIsUserGuideOpen(true)}
+        onOpenKvkk={() => setIsKvkkOpen(true)}
       />
 
       {/* Footer */}
-      <footer className="bg-[#050505] border-t border-white/10 py-6 text-xs text-white/50 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div 
-            onClick={() => setIsIntegrationModalOpen(true)}
-            className="flex items-center gap-2 cursor-pointer group"
-            title="haberverbana.app Alan Adı ve Python Scraper Bağlantı Panelini Aç"
-          >
-            <div className="w-6 h-6 rounded-lg bg-red-600 flex items-center justify-center text-white text-xs font-bold group-hover:scale-110 transition-transform">
-              ⚡
+      <footer className="bg-[#070707] border-t border-white/10 pt-10 pb-8 text-xs text-white/60 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          
+          {/* Top Footer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Col 1: Brand & Slogan */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5 inline-flex">
+                <div className="w-7 h-7 rounded-xl bg-red-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-red-950/50">
+                  ⚡
+                </div>
+                <span className="font-serif font-bold text-base text-white">
+                  haberverbana<span className="text-red-500">.app</span>
+                </span>
+              </div>
+              <p className="text-xs text-white/70 leading-relaxed max-w-sm">
+                "Hep ihmal ettiğiniz bir ihtiyacınızı belki HaberVerbanaAPP 75 sitede yaptığı düzenli fırsat taramalarıyla en uygun koşul ve fiyatlarla karşınıza çıkaracak."
+              </p>
+              <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-medium">HaberVerBanaAPP çalışıyor</span>
+              </div>
             </div>
-            <span className="font-serif font-bold text-white group-hover:text-red-400 transition-colors">
-              haberverbana.app
-            </span>
-            <span className="text-white/20">—</span>
-            <span className="italic">"Sen Arama, O Haber Versin"</span>
+
+            {/* Col 2: Rehber & Yardım Bağlantıları */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                Rehber & Destek
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <button
+                    onClick={() => setIsUserGuideOpen(true)}
+                    className="text-white/70 hover:text-white transition-colors flex items-center gap-2 cursor-pointer group"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform" />
+                    <span>Kullanım Kılavuzu (Hızlı Başlangıç)</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsFaqOpen(true)}
+                    className="text-white/70 hover:text-white transition-colors flex items-center gap-2 cursor-pointer group"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                    <span>Sık Sorulan Sorular (SSS) & Link Rehberi</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsKvkkOpen(true)}
+                    className="text-white/70 hover:text-white transition-colors flex items-center gap-2 cursor-pointer group"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    <span>KVKK & Gizlilik Aydınlatma Metni</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: İletişim & Destek E-postası */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                İletişim & Destek
+              </h4>
+              <p className="text-[11px] text-white/50">
+                Soru, teknik destek veya önerileriniz için resmi iletişim adresimiz:
+              </p>
+              
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-mono text-xs text-red-400 font-bold">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span>destek@haberverbana.app</span>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText('destek@haberverbana.app');
+                        setCopiedFooterEmail(true);
+                        setTimeout(() => setCopiedFooterEmail(false), 2000);
+                      } catch {
+                        // Fallback
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                    title="E-posta adresini kopyala"
+                  >
+                    {copiedFooterEmail ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Kopyalandı</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 text-white/60" />
+                        <span>Kopyala</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-white/40 italic">
+                  * Resmi kurumsal e-posta adresimiz aktif hale getirilme aşamasındadır; iletileriniz arşivlenerek değerlendirilir.
+                </p>
+              </div>
+            </div>
+
           </div>
 
-          <div className="flex items-center gap-4 text-white/40 font-mono text-[11px]">
-            <button
-              onClick={() => setIsIntegrationModalOpen(true)}
-              className="text-amber-400/90 hover:text-amber-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
-            >
-              <span>Python & Domain Merkezi</span>
-            </button>
-            <span>•</span>
-            <span>Canlı Radar v2.4</span>
-            <span>•</span>
-            <span className="text-emerald-400/80">Sistem Operasyonel</span>
+          {/* Bottom Divider & Copyright */}
+          <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white/40">
+            <div>
+              <span>© 2026 haberverbana.app — Tüm Hakları Saklıdır.</span>
+              <span className="hidden sm:inline"> • </span>
+              <span className="hidden sm:inline">Kişisel veriler cihazınızda yerel saklanır (Sıfır Veri Satışı).</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsKvkkOpen(true)}
+                className="hover:text-white underline underline-offset-2 cursor-pointer"
+              >
+                KVKK Metni
+              </button>
+              <span>•</span>
+              <button 
+                onClick={() => setIsFaqOpen(true)}
+                className="hover:text-white underline underline-offset-2 cursor-pointer"
+              >
+                SSS
+              </button>
+              <span>•</span>
+              <button 
+                onClick={() => setIsUserGuideOpen(true)}
+                className="hover:text-white underline underline-offset-2 cursor-pointer"
+              >
+                Kılavuz
+              </button>
+            </div>
           </div>
+
         </div>
       </footer>
     </div>

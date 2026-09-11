@@ -27,7 +27,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Batarya sağlığı %99.2 (Tesla servis raporuyla doğrulanmış), teknik risk yok.'
     ],
     marketComparison: '2024 Model Y RWD emsalleri Sahibinden üzerinde 2.390.000 - 2.460.000 ₺ bandında satılmaktadır.',
-    productUrl: 'https://www.sahibinden.com/tesla-model-y',
+    productUrl: 'https://www.sahibinden.com/kelime-ile-arama?query_text=Tesla+Model+Y',
     imageUrl: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80',
     foundAt: '8 dakika önce',
     sellerRating: 'Bireysel (İlk Sahibi - 5 Yıllık Üye)',
@@ -108,7 +108,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Sıfır ambalajında ve resmi garantili, risk unsuru yok.'
     ],
     marketComparison: 'Yetkili satıcılarda liste fiyatı 67.990 TL seviyesindedir.',
-    productUrl: 'https://www.hepsiburada.com',
+    productUrl: 'https://www.hepsiburada.com/ara?q=segway+ninebot+max+scooter',
     imageUrl: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=800&q=80',
     foundAt: '22 dakika önce',
     sellerRating: '4.8 / 5.0 (Resmi Mağaza)',
@@ -149,7 +149,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Satıcı güvenilir (Amazon TR), teknik risk bulunmuyor.'
     ],
     marketComparison: 'Piyasadaki diğer güvenilir satıcılarda (MediaMarkt, Hepsiburada, Apple Store) 118.000 - 125.000 ₺ bandında satılıyor.',
-    productUrl: 'https://www.amazon.com.tr/dp/B0CM5NW39Z',
+    productUrl: 'https://www.amazon.com.tr/s?k=MacBook+Pro+M3+Max+36GB',
     imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
     foundAt: '12 dakika önce',
     sellerRating: '4.9 / 5.0 (Resmi Satıcı)',
@@ -191,7 +191,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Satıcı bireysel; noterde ekspertiz doğrulaması yapılması önerilir. Tramer sorgusu temiz.'
     ],
     marketComparison: 'Benzer km ve donanımdaki 2022 Golf R-Line piyasa ilan ortalaması 1.490.000 - 1.550.000 ₺ aralığında seyrediyor.',
-    productUrl: 'https://www.sahibinden.com/ilan/vasita-otomobil-volkswagen-golf-r-line',
+    productUrl: 'https://www.sahibinden.com/kelime-ile-arama?query_text=Volkswagen+Golf+R+Line',
     imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80',
     foundAt: '28 dakika önce',
     sellerRating: 'Bireysel (İlk Sahibi - 7 Yıllık Üye)',
@@ -233,7 +233,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Satıcı Hepsiburada resmi mağazası, sıfır risk.'
     ],
     marketComparison: 'Teknosa ve D&R mağazalarında 13.999 ₺, Trendyol ortalaması 13.450 ₺.',
-    productUrl: 'https://www.hepsiburada.com/sony-wh-1000xm5-kablosuz-kulaklik',
+    productUrl: 'https://www.hepsiburada.com/ara?q=Sony+WH-1000XM5',
     imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80',
     foundAt: '45 dakika önce',
     sellerRating: '4.8 / 5.0 (Hepsiburada)',
@@ -274,7 +274,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Bina yaşı nedeniyle alım öncesi statik raporun incelenmesi tavsiye edilir.'
     ],
     marketComparison: 'Moda bölgesinde benzer nitelikteki 2+1 daireler 6.400.000 - 7.200.000 ₺ arasında listeleniyor.',
-    productUrl: 'https://www.sahibinden.com/ilan/emlak-konut-satilik-kadikoy-moda-daire',
+    productUrl: 'https://www.sahibinden.com/kelime-ile-arama?query_text=Kadikoy+Moda+Satilik+Daire',
     imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
     foundAt: '1 saat önce',
     sellerRating: 'Yetkili Emlak Ofisi (Kurumsal)',
@@ -313,7 +313,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Kutu içeriğindeki aksesuarlar tam; sahte veya paralel ithalat değil.'
     ],
     marketComparison: 'Dyson web sitesinde 29.999 ₺, Teknosa/MediaMarkt 28.499 ₺.',
-    productUrl: 'https://www.trendyol.com/dyson/v15-detect-absolute-kablosuz-supurge',
+    productUrl: 'https://www.trendyol.com/sr?q=Dyson+V15+Detect+Absolute',
     imageUrl: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=800&q=80',
     foundAt: '2 saat önce',
     sellerRating: '4.9 / 5.0 (Dyson Resmi Mağaza)',
@@ -351,7 +351,7 @@ export const INITIAL_DEALS: DealItem[] = [
       'Amazon lojistik garantisiyle hasarsız teslimat.'
     ],
     marketComparison: 'Vatan Bilgisayar 59.999 ₺, Hepsiburada 57.800 ₺.',
-    productUrl: 'https://www.amazon.com.tr/dp/B0BY29L7Z9',
+    productUrl: 'https://www.amazon.com.tr/s?k=Samsung+65+QN90C',
     imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=800&q=80',
     foundAt: '3 saat önce',
     sellerRating: '4.9 / 5.0 (Amazon.com.tr)',
