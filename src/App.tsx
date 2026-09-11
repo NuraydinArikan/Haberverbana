@@ -315,37 +315,6 @@ export default function App() {
     showToast(`🧹 Kıyaslama listesi temizlendi.`);
   };
 
-  // Auto-sync with backend / Python Playwright Ingestion API
-  useEffect(() => {
-    const syncBackendDeals = async () => {
-      try {
-        const res = await fetch('/api/deals');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.deals) && data.deals.length > 0) {
-            setDeals(prev => {
-              const existingIds = new Set(prev.map(d => d.id));
-              const freshDeals = data.deals.filter((d: DealItem) => !existingIds.has(d.id));
-              if (freshDeals.length > 0) {
-                showToast(`⚡ Python Scraper ${freshDeals.length} yeni fırsatı radara aktardı!`, 'deal', freshDeals[0]);
-                const combined = [...freshDeals, ...prev];
-                localStorage.setItem('haberverbana_deals', JSON.stringify(combined));
-                return combined;
-              }
-              return prev;
-            });
-          }
-        }
-      } catch {
-        // Local preview fallback
-      }
-    };
-
-    syncBackendDeals();
-    const interval = setInterval(syncBackendDeals, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Notification Center History State
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     const saved = localStorage.getItem('haberverbana_notifications');

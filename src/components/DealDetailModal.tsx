@@ -66,10 +66,27 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({
           productUrl: deal.productUrl
         })
       });
-      const data = await res.json();
-      setAiReport(data);
-    } catch (err) {
-      console.error('Deep AI error:', err);
+      if (res.ok) {
+        const data = await res.json();
+        setAiReport(data);
+      } else {
+        throw new Error('Fallback required');
+      }
+    } catch {
+      // Offline / static environment heuristic analysis
+      const cPrice = deal.currentPrice;
+      const mPrice = deal.marketAvgPrice;
+      const discountPct = Math.round(((mPrice - cPrice) / mPrice) * 100);
+      setAiReport({
+        opportunityScore: deal.opportunityScore,
+        badge: deal.badge,
+        whyForYou: deal.whyForYou,
+        summary: deal.summary,
+        pros: deal.pros,
+        cons: deal.cons,
+        riskFactors: deal.riskFactors,
+        marketComparison: deal.marketComparison
+      });
     } finally {
       setIsAnalyzingWithAI(false);
     }

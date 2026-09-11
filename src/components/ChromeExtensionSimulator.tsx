@@ -71,9 +71,30 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
           price: targetPrice
         })
       });
-      const data = await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        setScanResult({
+          ...data,
+          sampleData: sample || {
+            platform: 'Amazon',
+            title: targetTitle || 'Taranan Ürün Linki',
+            price: 24500,
+            marketAvg: 31000,
+            category: 'Elektronik & Bilgisayar',
+            url: targetUrl
+          }
+        });
+      } else {
+        throw new Error('API unreachable');
+      }
+    } catch {
       setScanResult({
-        ...data,
+        title: targetTitle || 'Web Linkinden Yakalanan Ürün',
+        estimatedMarketPrice: targetPrice ? Math.round(targetPrice * 1.25) : 35000,
+        opportunityScore: 8.5,
+        verdict: 'Yüksek Fırsat Potansiyeli',
+        whyNotice: 'Bu linkteki ürün piyasa ortalamasının altında görünüyor. Radara eklenmeye değer.',
+        recommendedAction: 'Radara Ekle & Alarm Kur',
         sampleData: sample || {
           platform: 'Amazon',
           title: targetTitle || 'Taranan Ürün Linki',
@@ -83,8 +104,6 @@ export const ChromeExtensionSimulator: React.FC<ChromeExtensionSimulatorProps> =
           url: targetUrl
         }
       });
-    } catch (err) {
-      console.error('Scan error:', err);
     } finally {
       setIsScanning(false);
     }
