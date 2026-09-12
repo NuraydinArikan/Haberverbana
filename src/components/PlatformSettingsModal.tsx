@@ -164,7 +164,7 @@ export const PlatformSettingsModal: React.FC<PlatformSettingsModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-white/60 leading-relaxed pl-6">
-                Herhangi bir site belirtmediğinizde, kategoriye uygun tüm platformlar (75 e-ticaret, ilan ve ikinci el sitesi) otomatik taranır.
+                Herhangi bir site belirtmediğinizde, kategoriye uygun tüm platformlar (100'e yakın e-ticaret, ilan ve ikinci el sitesi) otomatik taranır.
               </p>
             </div>
 
@@ -340,7 +340,7 @@ export const PlatformSettingsModal: React.FC<PlatformSettingsModalProps> = ({
             </div>
             <h3 className="font-bold text-sm text-white">Otomatik Çapraz Tarama Modu Aktif</h3>
             <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
-              Bu modda radar, aradığınız veya takip ettiğiniz her ürün için Türkiye'nin en büyük 75 e-ticaret ve ilan platformunu yapay zekayla otomatik olarak tarar. Sizin tek tek platform seçmeniz gerekmez.
+              Bu modda radar, aradığınız veya takip ettiğiniz her ürün için Türkiye'nin en büyük 100'e yakın e-ticaret ve ilan platformunu yapay zekayla otomatik olarak tarar. Sizin tek tek platform seçmeniz gerekmez.
             </p>
             <button
               onClick={() => setIsAutoMode(false)}

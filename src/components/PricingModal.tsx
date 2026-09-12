@@ -201,12 +201,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         </div>
       </div>
 
-      {/* Affiliate Notice Note */}
+      {/* Altyapı & Sürdürülebilirlik Modeli */}
       <div className="p-5 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
         <div className="flex items-center gap-3">
           <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
           <p>
-            <strong className="text-white">Şeffaflık & Satış Ortaklığı (Affiliate):</strong> Sitemizdeki Amazon, Trendyol ve Hepsiburada bağlantıları üzerinden yapılan alışverişlerde küçük bir komisyon elde edilerek radar altyapısının 7/24 ücretsiz kalması sağlanır.
+            <strong className="text-white">Altyapı & Hizmet Modeli:</strong> Radar tarama motorumuz ve anlık bildirim sunucularımız, kullanıcı abonelik ücretleri ve Pro/B2B paketler ile finanse edilerek 7/24 kesintisiz ve tarafsız hizmet sunar.
           </p>
         </div>
       </div>

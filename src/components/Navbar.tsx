@@ -55,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Format the platform status text dynamically
   const getPlatformDisplayText = () => {
     if (!selectedPlatforms || selectedPlatforms.length === 0 || (selectedPlatforms.length === 1 && selectedPlatforms[0] === 'all')) {
-      return 'Tüm İlgili Platformlar (Kategoriye Göre 75 Mecra)';
+      return 'Tüm İlgili Platformlar (100\'e Yakın Mecra)';
     }
     if (selectedPlatforms.length <= 3) {
       return selectedPlatforms.join(' • ');

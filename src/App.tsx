@@ -1831,7 +1831,7 @@ export default function App() {
         onSaveSelectedPlatforms={(platforms) => {
           setSelectedPlatforms(platforms);
           if (platforms.length === 0 || (platforms.length === 1 && platforms[0] === 'all')) {
-            showToast('🌐 Radar ayarları güncellendi: Tüm ilgili platformlar (75 mağaza) otomatik taranıyor.');
+            showToast('🌐 Radar ayarları güncellendi: Tüm ilgili platformlar (100\'e yakın mağaza ve ilan sitesi) otomatik taranıyor.');
           } else {
             showToast(`🎯 Radar ayarları güncellendi: ${platforms.length} özel platform hedeflendi.`);
           }
@@ -1893,7 +1893,7 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs text-white/70 leading-relaxed max-w-sm">
-                "Hep ihmal ettiğiniz bir ihtiyacınızı belki HaberVerbanaAPP 75 sitede yaptığı düzenli fırsat taramalarıyla en uygun koşul ve fiyatlarla karşınıza çıkaracak."
+                "Hep ihmal ettiğiniz bir ihtiyacınızı belki HaberVerbanaAPP 100'e yakın sitede yaptığı düzenli fırsat taramalarıyla en uygun koşul ve fiyatlarla karşınıza çıkaracak."
               </p>
               <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>

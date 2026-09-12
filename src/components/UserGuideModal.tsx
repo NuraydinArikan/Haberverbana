@@ -106,7 +106,7 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
               <span>1. Temel Amaç: "Sen Arama, O Haber Versin"</span>
             </div>
             <p className="text-white/90 leading-relaxed text-xs italic font-medium bg-red-950/20 p-2.5 rounded-xl border border-red-500/20 text-red-200">
-              "Hep ihmal ettiğiniz bir ihtiyacınızı belki HaberVerbanaAPP 75 sitede yaptığı düzenli fırsat taramalarıyla en uygun koşul ve fiyatlarla karşınıza çıkaracak."
+              "Hep ihmal ettiğiniz bir ihtiyacınızı belki HaberVerbanaAPP 100'e yakın sitede yaptığı düzenli fırsat taramalarıyla en uygun koşul ve fiyatlarla karşınıza çıkaracak."
             </p>
             <p className="text-white/75 leading-relaxed text-xs">
               <strong>haberverbana.app</strong>, ikinci el ve popüler e-ticaret sitelerindeki (Sahibinden, Letgo, Dolap, Amazon, Trendyol, Hepsiburada vb.) anormal fiyat düşüşlerini, dip fiyatları ve gizli fırsatları 7/24 yapay zeka destekli radarıyla tarar. Sizin yerinize piyasa fiyat ortalamalarını hesaplar, risk faktörlerini inceler ve sadece gerçek fırsatları tek bir canlı akışta ve Telegram üzerinden size ulaştırır.
@@ -165,7 +165,7 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
                   )}
                 </div>
                 <p className="text-white/70 text-[11px]">
-                  Üst durum çubuğundaki <strong>[Ayarlar]</strong> butonunu kullanarak radarın yalnızca ilgilendiğiniz siteleri (sadece Sahibinden, sadece Trendyol vb.) taramasını sağlayabilir veya yapay zekanın 75 alışveriş mecrasını otomatik olarak taramasına izin verebilirsiniz.
+                  Üst durum çubuğundaki <strong>[Ayarlar]</strong> butonunu kullanarak radarın yalnızca ilgilendiğiniz siteleri (sadece Sahibinden, sadece Trendyol vb.) taramasını sağlayabilir veya yapay zekanın 100'e yakın alışveriş ve ilan mecrasını otomatik olarak taramasına izin verebilirsiniz.
                 </p>
               </div>
 
