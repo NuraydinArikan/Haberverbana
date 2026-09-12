@@ -20,7 +20,8 @@ import {
   Square,
   Compass,
   Cpu,
-  Car
+  Car,
+  Edit3
 } from 'lucide-react';
 import { DealCategory, RadarRule, Platform } from '../types';
 import { 
@@ -33,11 +34,25 @@ import {
   PlatformItemSpec
 } from '../utils/searchUrlBuilder';
 
+export const formatPriceHuman = (val: number): string => {
+  if (isNaN(val) || val <= 0) return '₺0';
+  if (val >= 1_000_000) {
+    const millions = val / 1_000_000;
+    return `${millions.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Milyon TL (₺${val.toLocaleString('tr-TR')})`;
+  }
+  if (val >= 1_000) {
+    const thousands = val / 1_000;
+    return `${thousands.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} Bin TL (₺${val.toLocaleString('tr-TR')})`;
+  }
+  return `₺${val.toLocaleString('tr-TR')} TL`;
+};
+
 interface RuleDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveRule: (rule: Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>) => void;
+  onSaveRule: (rule: Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>, ruleIdToUpdate?: string) => void;
   initialValues?: Partial<Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>> | null;
+  ruleToEdit?: RadarRule | null;
 }
 
 const CATEGORIES: DealCategory[] = [
@@ -59,7 +74,8 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
   isOpen,
   onClose,
   onSaveRule,
-  initialValues
+  initialValues,
+  ruleToEdit
 }) => {
   const [searchQuery, setSearchQuery] = useState('MacBook Air M3 16GB');
   const [name, setName] = useState('');
@@ -92,23 +108,41 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
   const aiPlatformDiscovery = getAiRecommendedPlatforms(searchQuery, category);
 
   useEffect(() => {
-    if (isOpen && initialValues) {
-      if (initialValues.searchQuery !== undefined) setSearchQuery(initialValues.searchQuery);
-      if (initialValues.name !== undefined) setName(initialValues.name);
-      if (initialValues.category !== undefined) setCategory(initialValues.category);
-      if (initialValues.minPrice !== undefined) setMinPrice(initialValues.minPrice);
-      if (initialValues.maxPrice !== undefined) setMaxPrice(initialValues.maxPrice);
-      if (initialValues.minScore !== undefined) setMinScore(initialValues.minScore);
-      if (initialValues.aiInstructions !== undefined) setAiInstructions(initialValues.aiInstructions);
-      if (initialValues.platforms !== undefined) setSelectedPlatforms(initialValues.platforms);
-      if (initialValues.platformMode !== undefined) setPlatformMode(initialValues.platformMode === 'manual' ? 'manual' : 'auto_ai');
-      if (initialValues.autoExpandPlatforms !== undefined) setAutoExpandPlatforms(initialValues.autoExpandPlatforms);
-      if (initialValues.positiveKeywords !== undefined) setPositiveKeywords(initialValues.positiveKeywords);
-      if (initialValues.negativeKeywords !== undefined) setNegativeKeywords(initialValues.negativeKeywords);
-      if (initialValues.notificationChannel !== undefined) setNotificationChannel(initialValues.notificationChannel);
-      if (initialValues.frequency !== undefined) setFrequency(initialValues.frequency);
+    if (!isOpen) return;
+
+    const source = ruleToEdit || initialValues;
+    if (source) {
+      if (source.searchQuery !== undefined) setSearchQuery(source.searchQuery);
+      if (source.name !== undefined) setName(source.name);
+      if (source.category !== undefined) setCategory(source.category);
+      if (source.minPrice !== undefined) setMinPrice(source.minPrice);
+      if (source.maxPrice !== undefined) setMaxPrice(source.maxPrice);
+      if (source.minScore !== undefined) setMinScore(source.minScore);
+      if (source.aiInstructions !== undefined) setAiInstructions(source.aiInstructions);
+      if (source.platforms !== undefined) setSelectedPlatforms(source.platforms);
+      if (source.platformMode !== undefined) setPlatformMode(source.platformMode === 'manual' ? 'manual' : 'auto_ai');
+      if (source.autoExpandPlatforms !== undefined) setAutoExpandPlatforms(source.autoExpandPlatforms);
+      if (source.positiveKeywords !== undefined) setPositiveKeywords(source.positiveKeywords);
+      if (source.negativeKeywords !== undefined) setNegativeKeywords(source.negativeKeywords);
+      if (source.notificationChannel !== undefined) setNotificationChannel(source.notificationChannel);
+      if (source.frequency !== undefined) setFrequency(source.frequency);
+    } else {
+      setSearchQuery('MacBook Air M3 16GB');
+      setName('MacBook Air M3 16GB Radarı');
+      setCategory('Elektronik & Bilgisayar');
+      setMinPrice(1000);
+      setMaxPrice(50000);
+      setPlatformMode('auto_ai');
+      setSelectedPlatforms(['Amazon', 'Hepsiburada', 'Trendyol', 'Sahibinden']);
+      setAutoExpandPlatforms(true);
+      setAiInstructions('Satıcısı resmi satıcı olan ve 50 bin altındaki fırsatları haber ver.');
+      setPositiveKeywords(['16GB', 'M3', 'Sıfır']);
+      setNegativeKeywords(['teşhir', 'kutusu açık', 'parça niyetine', 'tamirli', 'ağır hasarlı']);
+      setMinScore(7.5);
+      setNotificationChannel('Telegram');
+      setFrequency('Anlık');
     }
-  }, [isOpen, initialValues]);
+  }, [isOpen, ruleToEdit, initialValues]);
 
   if (!isOpen) return null;
 
@@ -183,8 +217,8 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
       minScore,
       notificationChannel,
       frequency,
-      isActive: true
-    });
+      isActive: ruleToEdit ? ruleToEdit.isActive : true
+    }, ruleToEdit?.id);
 
     onClose();
   };
@@ -209,20 +243,36 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
         {/* Drawer Header */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-red-600/20 text-red-500 border border-red-500/30 flex items-center justify-center">
-              <Plus className="w-4 h-4" />
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              ruleToEdit 
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                : 'bg-red-600/20 text-red-500 border border-red-500/30'
+            }`}>
+              {ruleToEdit ? <Edit3 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-serif text-base sm:text-lg font-bold text-white">
-                  Yeni Fırsat Radarı Oluştur
+                  {ruleToEdit ? (
+                    <>Talebi / Radarı Düzenle: <span className="text-amber-400">{ruleToEdit.name}</span></>
+                  ) : (
+                    'Yeni Fırsat Radarı Oluştur'
+                  )}
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-                  Akıllı Platform Taraması
-                </span>
+                {ruleToEdit ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold">
+                    Düzenleme Modu
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+                    Akıllı Platform Taraması
+                  </span>
+                )}
               </div>
               <p className="text-xs text-white/50">
-                "Sen Arama, O Haber Versin" — Aradığınız ürünü veya bütçenizi belirleyin, radar sizin için tüm pazar yerlerini 7/24 izlesin.
+                {ruleToEdit 
+                  ? 'Bütçe sınırları, arama terimi, anahtar kelimeler, AI kriterleri ve taranacak platformları güncelleyin.'
+                  : '"Sen Arama, O Haber Versin" — Aradığınız ürünü veya bütçenizi belirleyin, radar sizin için tüm pazar yerlerini 7/24 izlesin.'}
               </p>
             </div>
           </div>
@@ -711,14 +761,19 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Price Limits */}
             <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
-              <label className="text-xs font-mono text-white/70 uppercase tracking-wider flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                <span>3. Maksimum Bütçe Sınırı</span>
-              </label>
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <label className="text-xs font-mono text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>3. Bütçe Sınırları</span>
+                </label>
+                <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                  {formatPriceHuman(maxPrice)}
+                </span>
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-[10px] text-white/40 block mb-1">Min (TL)</span>
+                  <span className="text-[10px] text-white/40 block mb-1">Min Bütçe (TL)</span>
                   <input
                     type="number"
                     value={minPrice}
@@ -727,13 +782,59 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] text-white/40 block mb-1">Maksimum (TL)</span>
+                  <span className="text-[10px] text-white/40 block mb-1">Maksimum Bütçe Tavanı (TL)</span>
                   <input
                     type="number"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(Number(e.target.value))}
                     className="w-full px-3 py-2 bg-black/60 border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-mono font-bold text-emerald-400"
                   />
+                </div>
+              </div>
+
+              {/* Zero error prevention & quick multiplier buttons */}
+              <div className="pt-1">
+                <span className="text-[10.5px] text-white/40 block mb-1.5">
+                  Hızlı Bütçe Düzeltme (Eksik/Fazla Sıfır Düzeltici):
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setMaxPrice(prev => prev * 10)}
+                    className="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono font-semibold transition-colors cursor-pointer"
+                    title="Bir sıfır ekle (Örn: 300.000 TL → 3.000.000 TL)"
+                  >
+                    ×10 (0 Ekle)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMaxPrice(prev => Math.floor(prev / 10))}
+                    className="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[11px] font-mono font-semibold transition-colors cursor-pointer"
+                    title="Bir sıfır sil (Örn: 3.000.000 TL → 300.000 TL)"
+                  >
+                    ÷10 (0 Sil)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMaxPrice(3000000)}
+                    className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 text-[11px] font-mono transition-colors cursor-pointer"
+                  >
+                    3.000.000 ₺
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMaxPrice(2500000)}
+                    className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 text-[11px] font-mono transition-colors cursor-pointer"
+                  >
+                    2.500.000 ₺
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMaxPrice(prev => prev + 500000)}
+                    className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 text-[11px] font-mono transition-colors cursor-pointer"
+                  >
+                    +500 Bin ₺
+                  </button>
                 </div>
               </div>
 
@@ -876,14 +977,27 @@ export const RuleDrawer: React.FC<RuleDrawerProps> = ({
 
             <button
               type="submit"
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold shadow-lg shadow-red-950/50 flex items-center gap-2 transition-all active:scale-95"
+              className={`px-6 py-3 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
+                ruleToEdit
+                  ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-950/50'
+                  : 'bg-red-600 hover:bg-red-700 text-white shadow-red-950/50'
+              }`}
             >
-              <Zap className="w-4 h-4" />
-              <span>
-                {platformMode === 'auto_ai' 
-                  ? `Radarı Başlat (AI Keşif: ${aiPlatformDiscovery.platforms.length} Platform)` 
-                  : `Radarı Başlat (${selectedPlatforms.length} Platform Seçili)`}
-              </span>
+              {ruleToEdit ? (
+                <>
+                  <Check className="w-4 h-4 text-black" />
+                  <span>Değişiklikleri Kaydet & Radarı Güncelle</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  <span>
+                    {platformMode === 'auto_ai' 
+                      ? `Radarı Başlat (AI Keşif: ${aiPlatformDiscovery.platforms.length} Platform)` 
+                      : `Radarı Başlat (${selectedPlatforms.length} Platform Seçili)`}
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </form>

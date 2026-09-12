@@ -234,6 +234,7 @@ export default function App() {
   const [selectedDealForTelegram, setSelectedDealForTelegram] = useState<DealItem | null>(null);
   const [isRuleDrawerOpen, setIsRuleDrawerOpen] = useState(false);
   const [ruleDrawerInitialValues, setRuleDrawerInitialValues] = useState<Partial<Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>> | null>(null);
+  const [ruleToEdit, setRuleToEdit] = useState<RadarRule | null>(null);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
@@ -503,21 +504,67 @@ export default function App() {
   };
 
   // Rule Handlers
+  const handleSaveRule = (
+    ruleData: Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>,
+    ruleIdToUpdate?: string
+  ) => {
+    if (ruleIdToUpdate) {
+      setRules(prev => prev.map(r => {
+        if (r.id === ruleIdToUpdate) {
+          return {
+            ...r,
+            ...ruleData,
+          };
+        }
+        return r;
+      }));
+      showToast(`"${ruleData.name}" talebi güncellendi (Yeni Tavan: ₺${ruleData.maxPrice.toLocaleString('tr-TR')})!`);
+
+      const updatedRule: RadarRule = {
+        ...ruleData,
+        id: ruleIdToUpdate,
+        matchedCount: rules.find(r => r.id === ruleIdToUpdate)?.matchedCount || 1,
+        createdAt: rules.find(r => r.id === ruleIdToUpdate)?.createdAt || 'Güncellendi'
+      };
+
+      setTimeout(() => {
+        handleScanRule(updatedRule);
+      }, 500);
+    } else {
+      const newRule: RadarRule = {
+        ...ruleData,
+        id: `rule-${Date.now()}`,
+        matchedCount: 1,
+        createdAt: 'Yeni oluşturuldu'
+      };
+
+      setRules([newRule, ...rules]);
+      showToast(`"${newRule.name}" radara eklendi. Çapraz platform taraması başlatıldı!`);
+
+      // Auto-trigger scan for this new rule
+      setTimeout(() => {
+        handleScanRule(newRule);
+      }, 600);
+    }
+    setRuleToEdit(null);
+  };
+
   const handleSaveNewRule = (newRuleData: Omit<RadarRule, 'id' | 'createdAt' | 'matchedCount'>) => {
-    const newRule: RadarRule = {
-      ...newRuleData,
-      id: `rule-${Date.now()}`,
-      matchedCount: 1,
-      createdAt: 'Yeni oluşturuldu'
-    };
+    handleSaveRule(newRuleData);
+  };
 
-    setRules([newRule, ...rules]);
-    showToast(`"${newRule.name}" radara eklendi. Çapraz platform taraması başlatıldı!`);
+  const handleEditRule = (rule: RadarRule) => {
+    setRuleToEdit(rule);
+    setRuleDrawerInitialValues(null);
+    setIsRuleDrawerOpen(true);
+  };
 
-    // Auto-trigger scan for this new rule
+  const handleUpdateRuleDirect = (updatedRule: RadarRule) => {
+    setRules(prev => prev.map(r => r.id === updatedRule.id ? updatedRule : r));
+    showToast(`"${updatedRule.name}" bütçesi ₺${updatedRule.maxPrice.toLocaleString('tr-TR')} olarak güncellendi!`);
     setTimeout(() => {
-      handleScanRule(newRule);
-    }, 600);
+      handleScanRule(updatedRule);
+    }, 400);
   };
 
   const handleScanRule = (rule: RadarRule) => {
@@ -1049,7 +1096,11 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenRuleDrawer={() => setIsRuleDrawerOpen(true)}
+        onOpenRuleDrawer={() => {
+          setRuleToEdit(null);
+          setRuleDrawerInitialValues(null);
+          setIsRuleDrawerOpen(true);
+        }}
         onOpenTelegramModal={() => {
           setSelectedDealForTelegram(deals[0] || null);
           setIsTelegramModalOpen(true);
@@ -1655,7 +1706,13 @@ export default function App() {
             onResetRulesToDefault={handleResetRulesToDefault}
             onClearAllRules={handleClearAllRules}
             onToggleMultipleRules={handleToggleMultipleRules}
-            onOpenCreateRule={() => setIsRuleDrawerOpen(true)}
+            onOpenCreateRule={() => {
+              setRuleToEdit(null);
+              setRuleDrawerInitialValues(null);
+              setIsRuleDrawerOpen(true);
+            }}
+            onEditRule={handleEditRule}
+            onUpdateRuleDirect={handleUpdateRuleDirect}
             onScanRule={handleScanRule}
           />
         )}
@@ -1723,12 +1780,14 @@ export default function App() {
         onClose={() => {
           setIsRuleDrawerOpen(false);
           setRuleDrawerInitialValues(null);
+          setRuleToEdit(null);
         }}
-        onSaveRule={(newRule) => {
-          handleSaveNewRule(newRule);
+        onSaveRule={(ruleData, ruleIdToUpdate) => {
+          handleSaveRule(ruleData, ruleIdToUpdate);
           setRuleDrawerInitialValues(null);
         }}
         initialValues={ruleDrawerInitialValues}
+        ruleToEdit={ruleToEdit}
       />
 
       {/* 4-Step Onboarding UI Wizard */}
